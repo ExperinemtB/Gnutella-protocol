@@ -16,6 +16,7 @@ public class RoutingTable {
 	Map<GUID, Host> queryTable = new HashMap<GUID, Host>();
 	Map<GUID, Host> queryHitTable = new HashMap<GUID, Host>();
 	Map<GUID, Host> routingTable = new HashMap<GUID, Host>();
+	ArrayList<GUID> guidList = new ArrayList<GUID>();
 
 	public void add(Host remoteHost, GUID guid, PayloadDescriptorType payloadType){
 		switch(payloadType){
@@ -28,19 +29,22 @@ public class RoutingTable {
 		case QUERY:
 			queryTable.put(guid, remoteHost);
 			break;
-		case QUERYHIT:
+		case QUERYHITS:
 			queryHitTable.put(guid, remoteHost);
 			break;
 		default:
 			System.out.println("This is not in PayloadDiscriptorType.");
 		}
-
+		routingTable.put(guid, remoteHost);
+		if(guidList.contains(guid) == false){
+			guidList.add(guid);
+		}
 	}
 
 	public Host getNextHost(Message message){
 		GUID guid = message.getHeader().getGuid();
 		PayloadDescriptorType payloadType = message.getHeader().getPayloadDescriptor();
-		Host returnHost;
+		Host returnHost = null;
 		switch(payloadType){
 		case PING:
 			returnHost = pingTable.get(guid);
@@ -51,7 +55,7 @@ public class RoutingTable {
 		case QUERY:
 			returnHost = queryTable.get(guid);
 			break;
-		case QUERYHIT:
+		case QUERYHITS:
 			returnHost = queryHitTable.get(guid);
 			break;
 		default:
@@ -62,9 +66,13 @@ public class RoutingTable {
 
 	public Host[] getNeedMulticast(Message message){
 		ArrayList<Host> hostList = new ArrayList<Host>();
-		Host[] returnHost;
+		Host[] returnHost = null;
 		GUID guid = message.getHeader().getGuid();
-
+		int number = guidList.size();
+		for(int i = 0; i < number; i++){
+			hostList.add(routingTable.get(guidList.get(i)));
+		}
+		returnHost = (Host[])hostList.toArray();
 		return returnHost;
 	}
 }
