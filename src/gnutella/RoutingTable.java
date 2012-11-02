@@ -1,14 +1,12 @@
 package gnutella;
 
 import gnutella.message.GUID;
-import gnutella.message.Message;
-import gnutella.message.PayloadDescriptorType;
 import gnutella.message.Header;
+import gnutella.message.Message;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public class RoutingTable {
 	Map<GUID, Host> pingTable = new HashMap<GUID, Host>();
@@ -18,7 +16,7 @@ public class RoutingTable {
 	Map<GUID, Host> routingTable = new HashMap<GUID, Host>();
 	ArrayList<GUID> guidList = new ArrayList<GUID>();
 
-	public void add(Host remoteHost, GUID guid, PayloadDescriptorType payloadType){
+	public void add(Host remoteHost, GUID guid, Header.PayloadDescriptorType payloadType){
 		switch(payloadType){
 		case PING:
 			pingTable.put(guid, remoteHost);
@@ -29,7 +27,7 @@ public class RoutingTable {
 		case QUERY:
 			queryTable.put(guid, remoteHost);
 			break;
-		case QUERYHITS:
+		case QUERYHIT:
 			queryHitTable.put(guid, remoteHost);
 			break;
 		default:
@@ -43,7 +41,7 @@ public class RoutingTable {
 
 	public Host getNextHost(Message message){
 		GUID guid = message.getHeader().getGuid();
-		PayloadDescriptorType payloadType = message.getHeader().getPayloadDescriptor();
+		Header.PayloadDescriptorType payloadType = message.getHeader().getPayloadDescriptor();
 		Host returnHost = null;
 		switch(payloadType){
 		case PING:
@@ -55,7 +53,7 @@ public class RoutingTable {
 		case QUERY:
 			returnHost = queryTable.get(guid);
 			break;
-		case QUERYHITS:
+		case QUERYHIT:
 			returnHost = queryHitTable.get(guid);
 			break;
 		default:

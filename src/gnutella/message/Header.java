@@ -2,7 +2,7 @@ package gnutella.message;
 
 public class Header {
 	public enum PayloadDescriptorType {
-		PING,PONG,PUSH,QUERY,QUERYHITS;
+		PING,PONG,PUSH,QUERY,QUERYHIT;
 	}
 	public static final int HEADER_LENGTH = 23;
 	

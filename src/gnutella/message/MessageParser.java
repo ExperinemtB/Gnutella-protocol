@@ -19,7 +19,7 @@ public class MessageParser {
 			return new PongMessage(header, payload);
 		case QUERY:
 			break;
-		case QUERYHITS:
+		case QUERYHIT:
 			break;
 		case PUSH:
 			break;

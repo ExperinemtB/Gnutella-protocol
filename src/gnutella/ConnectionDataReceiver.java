@@ -92,7 +92,7 @@ public class ConnectionDataReceiver implements Runnable {
 					break;
 				case QUERY:
 					break;
-				case QUERYHITS:
+				case QUERYHIT:
 					break;
 				case PUSH:
 					break;

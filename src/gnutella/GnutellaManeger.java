@@ -6,13 +6,13 @@ import java.util.concurrent.Executors;
 public class GnutellaManeger {
 	private static GnutellaManeger gnutellaManeger;
 	private ExecutorService executor;
-	private RootingTable rootingTable;
+	private RoutingTable routingTable;
 	private HostContainer hostContainer;
 	private final int MAX_POOL = 10;
 
 	private GnutellaManeger() {
 		this.executor = Executors.newFixedThreadPool(MAX_POOL);
-		this.rootingTable = new RootingTable();
+		this.routingTable = new RoutingTable();
 		this.hostContainer = new HostContainer();
 	}
 
@@ -31,8 +31,8 @@ public class GnutellaManeger {
 		executor.submit(runnable);
 	}
 
-	public RootingTable getRootingTable() {
-		return rootingTable;
+	public RoutingTable getRoutingTable() {
+		return routingTable;
 	}
 
 	public HostContainer getHostContainer() {
