@@ -5,7 +5,7 @@ public class Header {
 	public static final int PONG = 0x01;
 	public static final int PUSH = 0x40;
 	public static final int QUERY = 0x80;
-	public static final int QUERYHITS = 0x81;
+	public static final int QUERYHIT = 0x81;
 
 	private GUID guid;
 	private PayloadDescriptorType payloadDescriptor;
