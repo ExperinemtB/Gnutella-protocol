@@ -37,3 +37,6 @@ public class GUID {
 	}
 }
 
+	public byte[] getGuid() {
+		return guid;
+	}
