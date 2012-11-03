@@ -60,7 +60,7 @@ public class ConnectionDataReceiver implements Runnable {
 			}
 		} else if (connectionState == ConnectionStateType.CONNECTING) {
 			if (this.receiveByteQueue.size() >= Connection.GNUTELLA_OK_LENGTH) {
-				int readLength = Connection.GNUTELLA_OK.getBytes().length;
+				int readLength = Connection.GNUTELLA_OK_LENGTH;
 				String receiveString = new String(toPrimitive(receiveByteQueue.subList(0, readLength).toArray(new Byte[] {})));
 				if (receiveString.equals(Connection.GNUTELLA_OK)) {
 					System.out.println("Connection Accepted");
@@ -82,19 +82,18 @@ public class ConnectionDataReceiver implements Runnable {
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
 
 				MessageHundler hundler = new MessageHundler();
-				Header.PayloadDescriptorType type = message.getHeader().getPayloadDescriptor();
-				switch (type) {
-				case PING:
+				switch (message.getHeader().getPayloadDescriptor()) {
+				case Header.PING:
 					hundler.hundlePingMessage((PingMessage) message, remoteHost);
 					break;
-				case PONG:
+				case Header.PONG:
 					hundler.hundlePongMessage((PongMessage) message, remoteHost);
 					break;
-				case QUERY:
+				case Header.QUERY:
 					break;
-				case QUERYHIT:
+				case Header.QUERYHIT:
 					break;
-				case PUSH:
+				case Header.PUSH:
 					break;
 				default:
 					break;

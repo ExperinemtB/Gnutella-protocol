@@ -16,18 +16,18 @@ public class RoutingTable {
 	Map<GUID, Host> routingTable = new HashMap<GUID, Host>();
 	ArrayList<GUID> guidList = new ArrayList<GUID>();
 
-	public void add(Host remoteHost, GUID guid, Header.PayloadDescriptorType payloadType){
+	public void add(Host remoteHost, GUID guid, byte payloadType){
 		switch(payloadType){
-		case PING:
+		case Header.PING:
 			pingTable.put(guid, remoteHost);
 			break;
-		case PONG:
+		case Header.PONG:
 			pongTable.put(guid, remoteHost);
 			break;
-		case QUERY:
+		case Header.QUERY:
 			queryTable.put(guid, remoteHost);
 			break;
-		case QUERYHIT:
+		case Header.QUERYHIT:
 			queryHitTable.put(guid, remoteHost);
 			break;
 		default:
@@ -41,19 +41,18 @@ public class RoutingTable {
 
 	public Host getNextHost(Message message){
 		GUID guid = message.getHeader().getGuid();
-		Header.PayloadDescriptorType payloadType = message.getHeader().getPayloadDescriptor();
 		Host returnHost = null;
-		switch(payloadType){
-		case PING:
+		switch(message.getHeader().getPayloadDescriptor()){
+		case Header.PING:
 			returnHost = pingTable.get(guid);
 			break;
-		case PONG:
+		case Header.PONG:
 			returnHost = pongTable.get(guid);
 			break;
-		case QUERY:
+		case Header.QUERY:
 			returnHost = queryTable.get(guid);
 			break;
-		case QUERYHIT:
+		case Header.QUERYHIT:
 			returnHost = queryHitTable.get(guid);
 			break;
 		default:

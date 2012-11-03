@@ -1,21 +1,19 @@
 package gnutella.message;
 
 public class Header {
-	public enum PayloadDescriptorType {
-		PING,PONG,PUSH,QUERY,QUERYHIT;
-	}
+
 	public static final int HEADER_LENGTH = 23;
-	
-	public static final int PING = 0x00;
-	public static final int PONG = 0x01;
-	public static final int PUSH = 0x40;
-	public static final int QUERY = 0x80;
-	public static final int QUERYHIT = 0x81;
+
+	public static final byte PING = (byte) 0x00;
+	public static final byte PONG = (byte) 0x01;
+	public static final byte PUSH = (byte) 0x40;
+	public static final byte QUERY = (byte) 0x80;
+	public static final byte QUERYHIT = (byte) 0x81;
 
 	private GUID guid;
-	private PayloadDescriptorType payloadDescriptor;
 	private int ttl;
 	private int hops;
+	private byte payloadDescriptor;
 	private int payloadLength;
 	
 	public Header(){
@@ -27,10 +25,12 @@ public class Header {
 	public void setGuid(GUID guid) {
 		this.guid = guid;
 	}
-	public PayloadDescriptorType getPayloadDescriptor() {
+
+	public byte getPayloadDescriptor() {
 		return payloadDescriptor;
 	}
-	public void setPayloadDescriptor(PayloadDescriptorType payloadDescriptor) {
+
+	public void setPayloadDescriptor(byte payloadDescriptor) {
 		this.payloadDescriptor = payloadDescriptor;
 	}
 	public int getTtl() {
