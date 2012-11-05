@@ -5,7 +5,7 @@ public class Header {
 		PING,PONG,PUSH,QUERY,QUERYHIT;
 	}
 	public static final int HEADER_LENGTH = 23;
-	
+
 	public static final int PING = 0x00;
 	public static final int PONG = 0x01;
 	public static final int PUSH = 0x40;
@@ -17,10 +17,10 @@ public class Header {
 	private int ttl;
 	private int hops;
 	private int payloadLength;
-	
+
 	public Header(){
 	}
-	
+
 	public GUID getGuid() {
 		return guid;
 	}
@@ -51,16 +51,16 @@ public class Header {
 	public void setPayloadLength(int payloadLength) {
 		this.payloadLength = payloadLength;
 	}
-	
+
 	public byte[] getBytes(){
 		return new byte[0];
 	}
-	
+
 	public static Header parse(byte[] data){
 		if(data.length<HEADER_LENGTH){
 			return null;
 		}
-		
+
 		return new Header();
 	}
 }

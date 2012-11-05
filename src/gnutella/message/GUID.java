@@ -2,15 +2,26 @@ package gnutella.message;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 public class GUID {
 	private byte[] guid;
 
 
-	public byte[] GUID(InetAddress ipAddress){
-		byte[] guid = new byte[16];
-		guid = ipAddress.getAddress();
-		return guid;
+	public GUID(InetAddress ipAddress){
+		byte[] temp = ipAddress.getAddress();
+		int number = temp.length;
+		int len = 0;
+		for(int i = 0; i < 16; i++){
+			if(i < 15-number){
+				Random rnd = new Random();
+				this.guid[i] = (byte) rnd.nextInt(10);
+			}
+			else{
+				this.guid[i] = temp[len];
+				len++;
+			}
+		}
 	}
 
 	@Override
@@ -26,7 +37,7 @@ public class GUID {
 		if(o == this) return true;
 		if(o.getClass() != getClass()) return false;
 		GUID ex = (GUID)o;
-		return this.hashCode() == ex.hashCode() && this.guid.equals(o);
+		return this.hashCode() == ex.hashCode() && this.guid == ex.guid;
 	}
 }
 
