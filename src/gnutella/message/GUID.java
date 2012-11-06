@@ -2,6 +2,7 @@ package gnutella.message;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Random;
 
 public class GUID {
@@ -46,8 +47,9 @@ public class GUID {
 		GUID ex = (GUID)o;
 		return this.hashCode() == ex.hashCode() && this.guid == ex.guid;
 	}
-}
 
 	public byte[] getGuid() {
 		return guid;
 	}
+
+}
