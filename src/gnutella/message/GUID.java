@@ -7,6 +7,7 @@ import java.util.Random;
 public class GUID {
 	private byte[] guid;
 
+	public final static int LENGTH = 16;
 
 	public GUID(InetAddress ipAddress){
 		byte[] temp = ipAddress.getAddress();
@@ -24,6 +25,12 @@ public class GUID {
 		}
 	}
 
+	public GUID(byte[] guid){
+		if (guid.length != LENGTH) {
+			throw new IllegalArgumentException("Size of guid should be " + String.valueOf(LENGTH) + " byte");
+		}
+		this.guid = Arrays.copyOf(guid, LENGTH);
+	}
 	@Override
 	public int hashCode(){
 		ByteBuffer wb = ByteBuffer.wrap(this.guid);
@@ -41,3 +48,6 @@ public class GUID {
 	}
 }
 
+	public byte[] getGuid() {
+		return guid;
+	}
