@@ -1,6 +1,12 @@
 package gnutella;
 
+import gnutella.message.Header;
+import gnutella.message.PingMessage;
+import gnutella.share.SharedFile;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -44,6 +50,10 @@ public class GnutellaServant {
 						servernt.start(Integer.parseInt(cmd[1]));
 					} else if (cmd[0].equals("connect")) {
 						servernt.connect(InetAddress.getLocalHost(), Integer.parseInt(cmd[1]));
+					} else if (cmd[0].equals("sendPing")) {
+						servernt.sendPing();
+					} else if (cmd[0].equals("addFile")) {
+						servernt.addFile(cmd[1]);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -62,6 +72,25 @@ public class GnutellaServant {
 	public void connect(InetAddress ipAddress, int port) {
 		Client client = new Client(ipAddress, port);
 		GnutellaManeger.getInstance().executeOnThreadPool(client);
+	}
+
+	public void sendPing() {
+		Host[] neighborHosts = GnutellaManeger.getInstance().getHostContainer().getNeighborHosts();
+		Header header = new Header(Header.PING, (byte) 7, 0);
+		PingMessage ping = new PingMessage(header);
+		for (Host host : neighborHosts) {
+			try {
+				host.getConnection().sendMessage(ping);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void addFile(String path) {
+		File localFile = new File(path);
+		SharedFile file = new SharedFile(0, localFile.getName(), localFile);
+		GnutellaManeger.getInstance().getSharedFileContainer().addSharedFile(file);
 	}
 
 	public void stop() {

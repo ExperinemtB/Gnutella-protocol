@@ -16,8 +16,8 @@ public class RoutingTable {
 	Map<GUID, Host> routingTable = new HashMap<GUID, Host>();
 	ArrayList<GUID> guidList = new ArrayList<GUID>();
 
-	public void add(Host remoteHost, GUID guid, byte payloadType){
-		switch(payloadType){
+	public synchronized void add(Host remoteHost, GUID guid, byte payloadType) {
+		switch (payloadType) {
 		case Header.PING:
 			pingTable.put(guid, remoteHost);
 			break;
@@ -34,26 +34,26 @@ public class RoutingTable {
 			System.out.println("This is not in PayloadDiscriptorType.");
 		}
 		routingTable.put(guid, remoteHost);
-		if(guidList.contains(guid) == false){
+		if (guidList.contains(guid) == false) {
 			guidList.add(guid);
 		}
 	}
 
-	public Host getNextHost(Message message){
+	public Host getNextHost(Message message) {
 		GUID guid = message.getHeader().getGuid();
 		Host returnHost = null;
-		switch(message.getHeader().getPayloadDescriptor()){
+		switch (message.getHeader().getPayloadDescriptor()) {
 		case Header.PING:
 			returnHost = pingTable.get(guid);
 			break;
 		case Header.PONG:
-			returnHost = pongTable.get(guid);
+			returnHost = pingTable.get(guid);
 			break;
 		case Header.QUERY:
 			returnHost = queryTable.get(guid);
 			break;
 		case Header.QUERYHIT:
-			returnHost = queryHitTable.get(guid);
+			returnHost = queryTable.get(guid);
 			break;
 		default:
 			System.out.println("This is not in PayloadDiscriptorType.");
@@ -61,15 +61,22 @@ public class RoutingTable {
 		return returnHost;
 	}
 
-	public Host[] getNeedMulticast(Message message){
-		ArrayList<Host> hostList = new ArrayList<Host>();
-		Host[] returnHost = null;
-		GUID guid = message.getHeader().getGuid();
-		int number = guidList.size();
-		for(int i = 0; i < number; i++){
-			hostList.add(routingTable.get(guidList.get(i)));
+	public Boolean isMessageAlreadyReceived(GUID guid, byte payloadType) {
+		Boolean need = false;
+		switch (payloadType) {
+		case Header.PING:
+			need = pingTable.containsKey(guid);
+			break;
+		case Header.PONG:
+			need = pongTable.containsKey(guid);
+			break;
+		case Header.QUERY:
+			need = queryTable.containsKey(guid);
+			break;
+		case Header.QUERYHIT:
+			need = queryHitTable.containsKey(guid);
+			break;
 		}
-		returnHost = (Host[])hostList.toArray();
-		return returnHost;
+		return need;
 	}
 }

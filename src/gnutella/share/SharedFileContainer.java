@@ -2,7 +2,6 @@ package gnutella.share;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class SharedFileContainer {
@@ -20,7 +19,7 @@ public class SharedFileContainer {
 
 	public void addSharedFile(SharedFile shareFile) {
 		File file = shareFile.getOriginFile();
-		if (getFileByAbsolutePath(file.getAbsolutePath()) != null) {
+		if (getFileByAbsolutePath(file.getAbsolutePath()) != null||!file.exists()) {
 			return;
 		}
 		totalFileSizeKb += file.length() / 1024;

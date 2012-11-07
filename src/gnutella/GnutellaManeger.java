@@ -1,5 +1,7 @@
 package gnutella;
 
+import gnutella.share.SharedFileContainer;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -8,12 +10,16 @@ public class GnutellaManeger {
 	private ExecutorService executor;
 	private RoutingTable routingTable;
 	private HostContainer hostContainer;
+	private SharedFileContainer sharedFileContainer;
 	private final int MAX_POOL = 10;
+	
+	private int Port=50000;
 
 	private GnutellaManeger() {
 		this.executor = Executors.newFixedThreadPool(MAX_POOL);
 		this.routingTable = new RoutingTable();
 		this.hostContainer = new HostContainer();
+		this.sharedFileContainer = new SharedFileContainer();
 	}
 
 	public static GnutellaManeger getInstance() {
@@ -39,4 +45,15 @@ public class GnutellaManeger {
 		return hostContainer;
 	}
 
+	public SharedFileContainer getSharedFileContainer() {
+		return sharedFileContainer;
+	}
+
+	public int getPort() {
+		return Port;
+	}
+
+	public void setPort(int port) {
+		Port = port;
+	}
 }

@@ -9,6 +9,7 @@ import gnutella.message.PongMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,17 +29,23 @@ public class ConnectionDataReceiver implements Runnable {
 		InputStream is = connection.getInputStream();
 		int length = 0;
 		while ((length = is.read(byteBuffer)) != -1) {
-			System.out.println("receive:" + new String(byteBuffer));
+			System.out.println(String.format("\nreceive:%s from:%s:%d", new String(byteBuffer), remoteHost.getConnection().getInetAddress().getHostAddress(), remoteHost.getConnection().getPort()));
 
 			for (int i = 0; i < length; i++) {
 				receiveByteQueue.add(byteBuffer[i]);
 			}
-			parseData();
+			try {
+				parseData();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 			byteBuffer = new byte[BUFSIZE];
 		}
+		is.close();
+		throw new SocketException("Connection closed");
 	}
 
-	private void parseData() {
+	private synchronized void parseData() {
 		ConnectionStateType connectionState = remoteHost.getConnection().getConnectionState();
 		if (connectionState == ConnectionStateType.COLSE) {
 			if (this.receiveByteQueue.size() >= Connection.GNUTELLA_CONNECT_LENGTH) {
@@ -71,23 +78,26 @@ public class ConnectionDataReceiver implements Runnable {
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
 			}
 		} else if (connectionState == ConnectionStateType.CONNECT) {
+
 			if (this.receiveByteQueue.size() >= Header.HEADER_LENGTH) {
 				Message message = MessageParser.parse(toPrimitive(receiveByteQueue.toArray(new Byte[] {})));
 				if (message == null) {
 					System.out.println("invalid message");
 					return;
 				}
+				System.out.println("receive:" + message.toString());
 
 				int readLength = Header.HEADER_LENGTH + message.getHeader().getPayloadLength();
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
 
+				boolean accepted = false;
 				MessageHundler hundler = new MessageHundler();
 				switch (message.getHeader().getPayloadDescriptor()) {
 				case Header.PING:
-					hundler.hundlePingMessage((PingMessage) message, remoteHost);
+					accepted = hundler.hundlePingMessage((PingMessage) message, remoteHost);
 					break;
 				case Header.PONG:
-					hundler.hundlePongMessage((PongMessage) message, remoteHost);
+					accepted = hundler.hundlePongMessage((PongMessage) message, remoteHost);
 					break;
 				case Header.QUERY:
 					break;
@@ -98,6 +108,11 @@ public class ConnectionDataReceiver implements Runnable {
 				default:
 					break;
 				}
+
+				if (accepted) {
+					GnutellaManeger.getInstance().getRoutingTable().add(remoteHost, message.getHeader().getGuid(), message.getHeader().getPayloadDescriptor());
+				}
+
 			}
 		}
 	}
@@ -122,5 +137,7 @@ public class ConnectionDataReceiver implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		GnutellaManeger.getInstance().getHostContainer().removeByAddress(remoteHost.getAddress());
+		remoteHost.getConnection().setConnectionState(ConnectionStateType.COLSE);
 	}
 }

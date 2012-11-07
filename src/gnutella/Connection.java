@@ -13,7 +13,6 @@ public class Connection {
 	public static final int GNUTELLA_CONNECT_LENGTH = GNUTELLA_CONNECT.getBytes().length;
 	public static final String GNUTELLA_OK = "GNUTELLA OK\n\n";
 	public static final int GNUTELLA_OK_LENGTH = GNUTELLA_OK.getBytes().length;
-	
 
 	public enum ConnectionStateType {
 		COLSE, CONNECTING, CONNECT
@@ -56,12 +55,27 @@ public class Connection {
 	}
 
 	public void sendMessage(Message message) throws IOException {
+		System.out.println("sendMessage to:" + String.valueOf(socket.getPort()) + " "+message.toString());
 		OutputStream os = this.socket.getOutputStream();
 		os.write(message.getBytes());
 	}
 
 	public void sendString(String str) throws IOException {
+		System.out.println("sendString:" + str);
 		OutputStream os = this.socket.getOutputStream();
 		os.write(str.getBytes());
 	}
+
+	public int getLocalPort() {
+		return socket.getLocalPort();
+	}
+
+	public InetAddress getInetAddress() {
+		return socket.getInetAddress();
+	}
+	
+	public int getPort() {
+		return socket.getPort();
+	}
+
 }

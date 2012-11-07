@@ -1,5 +1,7 @@
 package gnutella;
 
+import gnutella.Host.HostType;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
@@ -17,9 +19,18 @@ public class Client implements Runnable {
 		try {
 			Connection connection = new Connection();
 			connection.initConnect(address, port);
-			Host host = GnutellaManeger.getInstance().getHostContainer().createNeighborHost(new InetSocketAddress(address, port), connection);
+			
+			HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
+			InetSocketAddress remoteAddress =  new InetSocketAddress(address, port);
+			Host host =hostContainer.getHostByAddress(remoteAddress);
+			if(host!=null){
+				host.setHostType(HostType.NEIGHBOR);
+				host.setConnection(connection);
+			}else{
+				host = hostContainer.createNeighborHost(remoteAddress, connection);
+			}
 			ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
-			dataReceiver.receiveData();
+			dataReceiver.run();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

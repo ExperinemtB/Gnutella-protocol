@@ -11,6 +11,7 @@ public class Host {
 	private InetSocketAddress address;
 	private Connection connection;
 	private int sharedFileCount;
+	private int sharedFileTotalSizeKb;
 
 	public Host(InetSocketAddress address) {
 		this.setAddress(address);
@@ -51,6 +52,14 @@ public class Host {
 
 	public void setAddress(InetSocketAddress address) {
 		this.address = address;
+	}
+
+	public int getSharedFileTotalSizeKb() {
+		return sharedFileTotalSizeKb;
+	}
+
+	public void setSharedFileTotalSizeKb(int sharedFileTotalSizeKb) {
+		this.sharedFileTotalSizeKb = sharedFileTotalSizeKb;
 	}
 
 }
