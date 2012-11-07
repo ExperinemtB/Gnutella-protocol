@@ -26,7 +26,8 @@ public class Header {
 		this(guid, payloadDescriptor, ttl, (byte) 0, payloadLength);
 	}
 
-	public Header(GUID guid, byte payloadDescriptor, byte ttl, byte hops, int payloadLength) {
+	public Header(GUID guid, byte payloadDescriptor, byte ttl, byte hops,
+			int payloadLength) {
 		this.guid = guid;
 		this.payloadDescriptor = payloadDescriptor;
 		this.ttl = ttl;
@@ -91,7 +92,8 @@ public class Header {
 
 	public static Header parse(byte[] data) {
 		if (data.length < HEADER_LENGTH) {
-			throw new IllegalArgumentException("Size of header should be " + String.valueOf(HEADER_LENGTH) + " byte");
+			throw new IllegalArgumentException("Size of header should be "
+					+ String.valueOf(HEADER_LENGTH) + " byte");
 		}
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		byte[] guid = new byte[GUID.LENGTH];
