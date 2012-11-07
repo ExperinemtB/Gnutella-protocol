@@ -31,23 +31,23 @@ public class HeaderTest {
 	@Test
 	public void testParse() {
 		ByteBuffer bf = ByteBuffer.allocateDirect(Header.HEADER_LENGTH);
-		
+
 		GUID guid = new GUID(new byte[GUID.LENGTH]);
 		byte payload = Header.PONG;
 		byte ttl = 7;
 		byte hops = 0;
 		int payloadLength = 20;
 
-		bf.put(guid.getGuid());		
+		bf.put(guid.getGuid());
 		bf.put(payload);
-		bf.put(ttl);		
-		bf.put(hops);		
-		bf.putInt(payloadLength);		
-		
+		bf.put(ttl);
+		bf.put(hops);
+		bf.putInt(payloadLength);
+
 		bf.flip();
 		byte[] headerBytes = new byte[Header.HEADER_LENGTH];
 		bf.get(headerBytes);
-		
+
 		Header header = Header.parse(headerBytes);
 
 		assertArrayEquals(header.getGuid().getGuid(), guid.getGuid());
