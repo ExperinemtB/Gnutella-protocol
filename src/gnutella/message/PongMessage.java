@@ -1,12 +1,13 @@
 package gnutella.message;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 public class PongMessage extends Message {
-	public static final int LENGTH = 23;
-	private int ipAddress;
-	private int port;
+	public static final int LENGTH = 14;
+	private InetAddress ipAddress;
+	private char port;
 	private int numberOfFilesShared;
 	private int numberOfKilobytesShared;
 
@@ -14,19 +15,22 @@ public class PongMessage extends Message {
 		this.setHeader(header);
 		this.setPayload(payload);
 
-		byte[] data = new byte[4];
-
+		byte[] data = new byte[2];
 		data[0] = payload[0];
 		data[1] = payload[1];
 		ByteBuffer wb0 = ByteBuffer.wrap(data);
-		this.port = wb0.getInt();
+		this.port = wb0.getChar();
 
-		for (int i = 0; i < 4; i++) {
-			data[i] = payload[2 + i];
+		data = new byte[4];
+		data[0] = payload[5];
+		data[1] = payload[4];
+		data[2] = payload[3];
+		data[3] = payload[2];
+		try {
+			this.ipAddress = InetAddress.getByAddress(data);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
 		}
-		ByteBuffer wb1 = ByteBuffer.wrap(data);
-		this.ipAddress = wb1.getInt();
-
 		for (int i = 0; i < 4; i++) {
 			data[i] = payload[6 + i];
 		}
@@ -40,37 +44,38 @@ public class PongMessage extends Message {
 		this.numberOfKilobytesShared = wb3.getInt();
 	}
 
-	public PongMessage(Header header, int localPort, InetAddress localHost, int numberOfFiles, int numberOfKilobytes) {
+	public PongMessage(Header header, char localPort, InetAddress ipAddress, int numberOfFilesShared, int numberOfKilobytesShared) {
 		this.setHeader(header);
 		this.setPayload(new byte[LENGTH]);
 		this.port = localPort;
+		this.ipAddress = ipAddress;
+		this.numberOfFilesShared = numberOfFilesShared;
+		this.numberOfKilobytesShared = numberOfKilobytesShared;
 	}
 
 	@Override
 	public byte[] getBytes() {
-		ByteBuffer bf = ByteBuffer.allocateDirect(4);
-		bf.putInt(this.port);
-		bf.flip();
-		byte[] portBytes = new byte[4];
-		bf.get(portBytes);
-		byte[] resBytes = new byte[23];
-		for (int i = 0; i < resBytes.length; i++) {
-			resBytes[i] = 0;
-			if (i < 4) {
-				resBytes[i] = portBytes[i];
-			}
-		}
+		ByteBuffer bf = ByteBuffer.allocateDirect(LENGTH);
+		bf.putChar(this.port);
 
-		this.setPayload(resBytes);
+		byte[] ipAddressByte = this.ipAddress.getAddress();
+		bf.put(ipAddressByte[3]);
+		bf.put(ipAddressByte[2]);
+		bf.put(ipAddressByte[1]);
+		bf.put(ipAddressByte[0]);
+
+		bf.putInt(this.numberOfFilesShared);
+		bf.putInt(this.numberOfKilobytesShared);
+		bf.flip();
+		byte[] result = new byte[LENGTH];
+		bf.get(result);
+
+		this.setPayload(result);
 		return super.getBytes();
 	}
 
-	public static int getLength() {
-		return LENGTH;
-	}
-
-	public int getIpAddress() {
-		return ipAddress;
+	public InetAddress getIpAddress() {
+		return this.ipAddress;
 	}
 
 	public int getPort() {
@@ -87,6 +92,6 @@ public class PongMessage extends Message {
 
 	@Override
 	public String toString() {
-		return this.getClass().getName() + " " + String.format("port:%d", this.port) + " " + super.toString();
+		return this.getClass().getSimpleName() + "{" + super.toString() + " " + String.format("port:%d ipAddress:%s fileCount:%d fileSize:%d", (int) this.port, this.ipAddress.getHostAddress(), this.numberOfFilesShared, this.numberOfKilobytesShared)+"}";
 	}
 }
