@@ -18,7 +18,12 @@ public class Header {
 	private byte hops;
 	private int payloadLength;
 
-	public Header() {
+	public Header(byte payload, byte ttl, int payloadLength) {
+		this(new GUID(), payload, ttl, (byte) 0, payloadLength);
+	}
+
+	public Header(GUID guid, byte payloadDescriptor, byte ttl, int payloadLength) {
+		this(guid, payloadDescriptor, ttl, (byte) 0, payloadLength);
 	}
 
 	public Header(GUID guid, byte payloadDescriptor, byte ttl, byte hops, int payloadLength) {
@@ -70,7 +75,18 @@ public class Header {
 	}
 
 	public byte[] getBytes() {
-		return new byte[0];
+		ByteBuffer bf = ByteBuffer.allocateDirect(Header.HEADER_LENGTH);
+
+		bf.put(guid.getGuid());
+		bf.put(payloadDescriptor);
+		bf.put(ttl);
+		bf.put(hops);
+		bf.putInt(payloadLength);
+
+		bf.flip();
+		byte[] headerBytes = new byte[Header.HEADER_LENGTH];
+		bf.get(headerBytes);
+		return headerBytes;
 	}
 
 	public static Header parse(byte[] data) {
@@ -86,4 +102,10 @@ public class Header {
 		int payloadLength = buffer.getInt();
 		return new Header(new GUID(guid), payload, ttl, hops, payloadLength);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("GUID:%s payloadDescriptor:%d ttl:%d hops:%d pauloadLength:%d", new String(guid.getGuid()), payloadDescriptor, ttl, hops, payloadLength);
+	}
+
 }
