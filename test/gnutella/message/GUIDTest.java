@@ -28,9 +28,8 @@ public class GUIDTest {
 
 	@Test
 	public void testEquals() {
-		byte[] guidBytes = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-		GUID guid1 = new GUID(guidBytes);
-		GUID guid2 = new GUID(guidBytes);
+		GUID guid1 = new GUID(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
+		GUID guid2 = new GUID(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
 		GUID guid3 = new GUID(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
 		assertEquals(true, guid1.equals(guid2));
 		assertEquals(false, guid1.equals(guid3));

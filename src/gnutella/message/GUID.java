@@ -2,6 +2,8 @@ package gnutella.message;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Random;
 
 public class GUID {
 	private byte[] guid;
@@ -28,12 +30,15 @@ public class GUID {
 	}
 
 	@Override
-	public boolean equals(Object o){
-		if(o == null) return false;
-		if(o == this) return true;
-		if(o.getClass() != getClass()) return false;
-		GUID ex = (GUID)o;
-		return this.hashCode() == ex.hashCode() && this.guid.equals(o);
+	public boolean equals(Object o) {
+		if (o == null || !(o instanceof GUID)) {
+			return false;
+		}
+		if (o == this) {
+			return true;
+		}
+		GUID ex = (GUID) o;
+		return this.hashCode() == ex.hashCode() && Arrays.equals(this.guid, ex.getGuid());
 	}
 }
 
