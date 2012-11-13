@@ -1,5 +1,6 @@
 package gnutella;
 
+import gnutella.message.GUID;
 import gnutella.share.SharedFileContainer;
 
 import java.util.concurrent.ExecutorService;
@@ -12,8 +13,10 @@ public class GnutellaManeger {
 	private HostContainer hostContainer;
 	private SharedFileContainer sharedFileContainer;
 	private final int MAX_POOL = 10;
-	
-	private int Port=50000;
+
+	private int Port = 50000;
+	private int speed = 0;
+	private GUID UID;
 
 	private GnutellaManeger() {
 		this.executor = Executors.newFixedThreadPool(MAX_POOL);
@@ -55,5 +58,21 @@ public class GnutellaManeger {
 
 	public void setPort(int port) {
 		Port = port;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		speed = speed;
+	}
+
+	public GUID getUID() {
+		return UID;
+	}
+
+	public void setUID(GUID uID) {
+		UID = uID;
 	}
 }

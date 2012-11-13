@@ -1,7 +1,9 @@
 package gnutella;
 
 import gnutella.Host.HostType;
+import gnutella.message.GUID;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -20,22 +22,23 @@ public class Server implements Runnable {
 
 			serverSocket = new ServerSocket(this.port);
 			GnutellaManeger.getInstance().setPort(port);
-			
-			System.out.println("Start Server on:"+String.valueOf(this.port));			
+			GnutellaManeger.getInstance().setUID(new GUID(InetAddress.getLocalHost()));
+
+			System.out.println("Start Server on:" + String.valueOf(this.port));
 
 			while (true) {
 				Socket socket = serverSocket.accept();
 
 				Connection connection = new Connection(socket);
-				InetSocketAddress remoteAddress =  new InetSocketAddress(socket.getInetAddress(), socket.getPort());
+				InetSocketAddress remoteAddress = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
 				HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
-				Host host =hostContainer.getHostByAddress(remoteAddress);
-				if(host!=null){
+				Host host = hostContainer.getHostByAddress(remoteAddress);
+				if (host != null) {
 					host.setHostType(HostType.NEIGHBOR);
 					host.setConnection(connection);
-				}else{
-					//remoteAddressのportは待ち受けポートではない
-					//Pongを受け取った際に更新する
+				} else {
+					// remoteAddressのportは待ち受けポートではない
+					// Pongを受け取った際に更新する
 					host = hostContainer.createNeighborHost(remoteAddress, connection);
 				}
 				ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
