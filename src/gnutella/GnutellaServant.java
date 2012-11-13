@@ -2,6 +2,7 @@ package gnutella;
 
 import gnutella.message.Header;
 import gnutella.message.PingMessage;
+import gnutella.message.QueryMessage;
 import gnutella.share.SharedFile;
 
 import java.io.BufferedReader;
@@ -54,6 +55,8 @@ public class GnutellaServant {
 						servernt.sendPing();
 					} else if (cmd[0].equals("addFile")) {
 						servernt.addFile(cmd[1]);
+					} else if (cmd[0].equals("sendQuery")) {
+						servernt.sendQuery(cmd[1], Integer.parseInt(cmd[2]));
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -81,6 +84,20 @@ public class GnutellaServant {
 		for (Host host : neighborHosts) {
 			try {
 				host.getConnection().sendMessage(ping);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void sendQuery(String keyword, int minimumSpeedKb) {
+		Host[] neighborHosts = GnutellaManeger.getInstance().getHostContainer().getNeighborHosts();
+		Header header = new Header(Header.QUERY, (byte) 7, QueryMessage.MIN_LENGTH + keyword.getBytes().length + 1);
+
+		QueryMessage query = new QueryMessage(header, minimumSpeedKb, keyword);
+		for (Host host : neighborHosts) {
+			try {
+				host.getConnection().sendMessage(query);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
