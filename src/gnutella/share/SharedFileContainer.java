@@ -19,7 +19,7 @@ public class SharedFileContainer {
 
 	public void addSharedFile(SharedFile shareFile) {
 		File file = shareFile.getOriginFile();
-		if (getFileByAbsolutePath(file.getAbsolutePath()) != null||!file.exists()) {
+		if (getFileByAbsolutePath(file.getAbsolutePath()) != null || !file.exists()) {
 			return;
 		}
 		totalFileSizeKb += file.length() / 1024;
@@ -47,5 +47,20 @@ public class SharedFileContainer {
 
 	public int getFileCount() {
 		return this.sharedFileList.size();
+	}
+
+	/**
+	 * 自分の共有中のファイルの中からキーワードをファイル名に含むものを検索する
+	 * @param keyword キーワード
+	 * @return 見つかったSharedFileの配列
+	 */
+	public SharedFile[] searchFilesByKeyword(String keyword) {
+		List<SharedFile> resultList = new ArrayList<SharedFile>();
+		for (SharedFile file : this.sharedFileList) {
+			if (file.getFileName().contains(keyword)) {
+				resultList.add(file);
+			}
+		}
+		return resultList.toArray(new SharedFile[] {});
 	}
 }
