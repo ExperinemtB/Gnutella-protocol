@@ -18,9 +18,9 @@ public class MessageParser {
 		case Header.PONG:
 			return new PongMessage(header, payload);
 		case Header.QUERY:
-			break;
+			return new QueryMessage(header, payload);
 		case Header.QUERYHIT:
-			break;
+			return new QueryHitMessage(header, payload);
 		case Header.PUSH:
 			break;
 		default:

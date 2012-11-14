@@ -6,6 +6,8 @@ import gnutella.message.Message;
 import gnutella.message.MessageParser;
 import gnutella.message.PingMessage;
 import gnutella.message.PongMessage;
+import gnutella.message.QueryHitMessage;
+import gnutella.message.QueryMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,8 +102,10 @@ public class ConnectionDataReceiver implements Runnable {
 					accepted = hundler.hundlePongMessage((PongMessage) message, remoteHost);
 					break;
 				case Header.QUERY:
+					accepted = hundler.hundleQueryMessage((QueryMessage) message, remoteHost);
 					break;
 				case Header.QUERYHIT:
+					accepted = hundler.hundleQueryHitMessage((QueryHitMessage) message, remoteHost);
 					break;
 				case Header.PUSH:
 					break;

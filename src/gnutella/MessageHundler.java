@@ -36,15 +36,14 @@ public class MessageHundler {
 			return false;
 		}
 
-
 		// Pongを返す
 		try {
-			Header pongHeader = new Header(pingHeader.getGuid(), Header.PONG, (byte) (pingHeader.getHops()+1),(byte)1, PongMessage.LENGTH);
+			Header pongHeader = new Header(pingHeader.getGuid(), Header.PONG, (byte) (pingHeader.getHops() + 1), (byte) 1, PongMessage.LENGTH);
 			int numberOfFiles = sharedFileContainer.getFileCount();
 			int numberOfKilobytes = sharedFileContainer.getTotalFileSizeKb();
 
-			//pongのportは待受ポート
-			PongMessage pong = new PongMessage(pongHeader, (char)GnutellaManeger.getInstance().getPort(), Inet4Address.getLocalHost(), numberOfFiles, numberOfKilobytes);
+			// pongのportは待受ポート
+			PongMessage pong = new PongMessage(pongHeader, (char) GnutellaManeger.getInstance().getPort(), Inet4Address.getLocalHost(), numberOfFiles, numberOfKilobytes);
 			remoteHost.getConnection().sendMessage(pong);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -74,27 +73,26 @@ public class MessageHundler {
 	}
 
 	public boolean hundlePongMessage(PongMessage pongMessage, Host remoteHost) {
-		//////////Pongの内容をローカルに保存する
+		// ////////Pongの内容をローカルに保存する
 		// 隣接ノードの自身のPingに対する応答の時
 		if (pongMessage.getHeader().getHops() == 1) {
 			InetSocketAddress connectedAddress = remoteHost.getAddress();
 			InetAddress ipAddress = connectedAddress.getAddress();
 			if (ipAddress.equals(pongMessage.getIpAddress())) {
-				//隣接ノードが発したPongの時
+				// 隣接ノードが発したPongの時
 				remoteHost.setSharedFileCount(pongMessage.getNumberOfFilesShared());
 				remoteHost.setSharedFileTotalSizeKb(pongMessage.getNumberOfKilobytesShared());
 
-				//hostのPortを接続可能な待受ポートに正しく設定し直す
+				// hostのPortを接続可能な待受ポートに正しく設定し直す
 				int connectedPort = connectedAddress.getPort();
 				int pongPort = pongMessage.getPort();
 				if (connectedPort != pongPort) {
-					//相手からの接続で通信が始まった場合はhostのportは待受ポートに設定されていない
-					//Pong中のportは待ち受けポートを表す
+					// 相手からの接続で通信が始まった場合はhostのportは待受ポートに設定されていない
+					// Pong中のportは待ち受けポートを表す
 					remoteHost.setAddress(new InetSocketAddress(connectedAddress.getAddress(), pongPort));
 				}
 			}
-		}
-		else{
+		} else {
 			InetSocketAddress soureceAddress = new InetSocketAddress(pongMessage.getIpAddress(), pongMessage.getPort());
 			Host sourceHost = hostContainer.getHostByAddress(soureceAddress);
 			if (sourceHost == null) {
@@ -103,7 +101,6 @@ public class MessageHundler {
 			sourceHost.setSharedFileCount(pongMessage.getNumberOfFilesShared());
 			sourceHost.setSharedFileTotalSizeKb(pongMessage.getNumberOfKilobytesShared());
 		}
-
 
 		// Pongをリレーする
 		Header pongHeader = pongMessage.getHeader();
@@ -115,7 +112,6 @@ public class MessageHundler {
 		pongHeader.setTtl((byte) newTTL);
 		pongHeader.setHops((byte) (pongHeader.getHops() + 1));
 		pongMessage.setHeader(pongHeader);
-
 
 		Host toSendHost = routingTable.getNextHost(pongMessage);
 		try {
@@ -130,7 +126,6 @@ public class MessageHundler {
 	}
 
 	public boolean hundleQueryMessage(QueryMessage queryMessage, Host remoteHost) {
-		boolean accepted = true;
 		Header queryHeader = queryMessage.getHeader();
 
 		if (routingTable.isMessageAlreadyReceived(queryHeader.getGuid(), queryHeader.getPayloadDescriptor())) {
@@ -138,22 +133,26 @@ public class MessageHundler {
 			return false;
 		}
 
+		GnutellaManeger maneger = GnutellaManeger.getInstance();
 
-		// 目的のファイルが見つかればqueryhitsを返す
-		SharedFile[] hitFiles =sharedFileContainer.searchFilesByKeyword(queryMessage.getSearchCriteria());
-		if(hitFiles.length > 0){
-			try {
-				ResultSet resultSet = new ResultSet();
-				for(int i = 0; i < hitFiles.length; i++){
-					resultSet.add(new ResultSetContent(hitFiles[i].getFileIndex(), (int)hitFiles[i].getOriginFile().length(), hitFiles[i].getFileName()));
+		// クライアントが求める最低速度よりも自身が速い時のみ応答する
+		if (queryMessage.getMinimumSpeedKb() >= maneger.getSpeed()) {
+			// 目的のファイルが見つかればqueryhitsを返す
+			SharedFile[] hitFiles = sharedFileContainer.searchFilesByKeyword(queryMessage.getSearchCriteria());
+			if (hitFiles.length > 0) {
+				try {
+					ResultSet resultSet = new ResultSet();
+					for (int i = 0; i < hitFiles.length; i++) {
+						resultSet.add(new ResultSetContent(hitFiles[i].getFileIndex(), (int) hitFiles[i].getOriginFile().length(), hitFiles[i].getFileName()));
+					}
+					Header queryHitHeader = new Header(queryHeader.getGuid(), Header.QUERYHIT, (byte) (queryHeader.getHops() + 1), (byte) 1, QueryHitMessage.MIN_LENGTH + resultSet.getByteLength());
+
+					// queryHitのportは待受ポート
+					QueryHitMessage queryHit = new QueryHitMessage(queryHitHeader, (byte) hitFiles.length, (char) maneger.getPort(), Inet4Address.getLocalHost(), maneger.getSpeed(), resultSet, maneger.getUID());
+					remoteHost.getConnection().sendMessage(queryHit);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-				Header queryHitHeader = new Header(queryHeader.getGuid(), Header.QUERYHIT, (byte) (queryHeader.getHops()+1),(byte)1, QueryHitMessage.MIN_LENGTH + resultSet.getByteLength());
-
-				//queryHitのportは待受ポート
-				QueryHitMessage queryHit = new QueryHitMessage(queryHitHeader, (byte) hitFiles.length, (char)GnutellaManeger.getInstance().getPort(), Inet4Address.getLocalHost(), GnutellaManeger.getInstance().getSpeed(), resultSet, queryHeader.getGuid());
-				remoteHost.getConnection().sendMessage(queryHit);
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 
@@ -180,34 +179,8 @@ public class MessageHundler {
 		return true;
 	}
 
-
 	public boolean hundleQueryHitMessage(QueryHitMessage queryHitMessage, Host remoteHost) {
-		//////////Pongの内容をローカルに保存する
-		// 隣接ノードの自身のPingに対する応答の時
-		if (queryHitMessage.getHeader().getHops() == 1) {
-			InetSocketAddress connectedAddress = remoteHost.getAddress();
-			InetAddress ipAddress = connectedAddress.getAddress();
-			if (ipAddress.equals(queryHitMessage.getIpAddress())) {
-				//hostのPortを接続可能な待受ポートに正しく設定し直す
-				int connectedPort = connectedAddress.getPort();
-				int queryHitPort = queryHitMessage.getPort();
-				if (connectedPort != queryHitPort) {
-					//相手からの接続で通信が始まった場合はhostのportは待受ポートに設定されていない
-					//Pong中のportは待ち受けポートを表す
-					remoteHost.setAddress(new InetSocketAddress(connectedAddress.getAddress(), queryHitPort));
-				}
-			}
-		}
-		else{
-			InetSocketAddress soureceAddress = new InetSocketAddress(queryHitMessage.getIpAddress(), queryHitMessage.getPort());
-			Host sourceHost = hostContainer.getHostByAddress(soureceAddress);
-			if (sourceHost == null) {
-				sourceHost = hostContainer.createNetworkHost(soureceAddress);
-			}
-		}
-
-
-		// Pongをリレーする
+		// QueryHitをリレーする
 		Header queryHitHeader = queryHitMessage.getHeader();
 		int newTTL = queryHitHeader.getTtl() - 1;
 		if (newTTL < 1) {
@@ -217,7 +190,6 @@ public class MessageHundler {
 		queryHitHeader.setTtl((byte) newTTL);
 		queryHitHeader.setHops((byte) (queryHitHeader.getHops() + 1));
 		queryHitMessage.setHeader(queryHitHeader);
-
 
 		Host toSendHost = routingTable.getNextHost(queryHitMessage);
 		try {
