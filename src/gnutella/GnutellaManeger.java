@@ -65,7 +65,7 @@ public class GnutellaManeger {
 	}
 
 	public void setSpeed(int speed) {
-		speed = speed;
+		this.speed = speed;
 	}
 
 	public GUID getUID() {

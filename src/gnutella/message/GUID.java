@@ -15,20 +15,15 @@ public class GUID {
 		this.guid = new byte[LENGTH];
 		rand.nextBytes(this.guid);
 	}
-		
+
 	public GUID(InetAddress ipAddress) {
-		byte[] temp = ipAddress.getAddress();
-		int number = temp.length;
-		int len = 0;
-		Random rnd = new Random(System.currentTimeMillis());
-		for (int i = 0; i < LENGTH; i++) {
-			if (i < 15 - number) {
-				this.guid[i] = (byte) rnd.nextInt(255);
-			} else {
-				this.guid[i] = temp[len];
-				len++;
-			}
-		}
+		this.guid = new byte[LENGTH];
+		byte[] ipBytes = ipAddress.getAddress();
+		byte[] diffBytes = new byte[LENGTH - ipBytes.length];
+		(new Random(System.currentTimeMillis())).nextBytes(diffBytes);
+
+		System.arraycopy(ipBytes, 0, this.guid, 0, ipBytes.length);
+		System.arraycopy(diffBytes, 0, this.guid, ipBytes.length, diffBytes.length);
 	}
 
 	public GUID(byte[] guid) {
@@ -43,7 +38,7 @@ public class GUID {
 		ByteBuffer wb = ByteBuffer.wrap(this.guid);
 		int intGuid = wb.getInt();
 		return intGuid;
-		
+
 	}
 
 	@Override
