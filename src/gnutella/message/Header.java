@@ -105,7 +105,7 @@ public class Header {
 
 	@Override
 	public String toString() {
-		return String.format("{GUID:%s payloadDescriptor:%d ttl:%d hops:%d pauloadLength:%d}", new String(guid.getGuid()), payloadDescriptor, ttl, hops, payloadLength);
+		return String.format("{GUID:%s payloadDescriptor:%d ttl:%d hops:%d payloadLength:%d}", new String(guid.getGuid()), payloadDescriptor, ttl, hops, payloadLength);
 	}
 
 }

@@ -49,4 +49,15 @@ public class ResultSet {
 		}
 		return null;
 	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		for (ResultSetContent content : this.resultSetContentList) {
+			sb.append(content.toString());
+		}
+		sb.append("}");
+		return sb.toString();
+	}
 }

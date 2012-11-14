@@ -55,4 +55,9 @@ public class ResultSetContent {
 		bf.get(result);
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("{fileIndex:%d fileSize:%d fileName:%s}", this.fileIndex, this.fileSize, this.fileName);
+	}
 }
