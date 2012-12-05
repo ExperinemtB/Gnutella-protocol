@@ -3,6 +3,7 @@ package gnutella;
 import gnutella.message.Header;
 import gnutella.message.PingMessage;
 import gnutella.message.PongMessage;
+import gnutella.message.PushMessage;
 import gnutella.message.QueryHitMessage;
 import gnutella.message.QueryMessage;
 import gnutella.message.ResultSet;
@@ -200,6 +201,49 @@ public class MessageHundler {
 			e.printStackTrace();
 		}
 
+		return true;
+	}
+
+	public boolean hundlePushMessage(PushMessage pushMessage, Host remoteHost) {
+		// 自身に対するPushのとき
+		if (pushMessage.getServentIdentifier().equals(GnutellaManeger.getInstance().getUID())) {
+			// ファイル転送専用のコネクションを新たに張る
+			DownloadConnection fileTransportConnection = new DownloadConnection();
+			try {
+				InetSocketAddress fileTransportRemoteAddress = new InetSocketAddress(pushMessage.getIpAddress(),  pushMessage.getPort());
+				HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();				
+				fileTransportConnection.connect(pushMessage.getIpAddress(), pushMessage.getPort());
+				Host fileTransportHost = hostContainer.createFileTransportHost(fileTransportRemoteAddress, fileTransportConnection);
+				
+				SharedFile file = sharedFileContainer.getSharedFileByFileIndex(pushMessage.getFileIndex());
+				fileTransportConnection.sendHttpGivRequest(GnutellaManeger.getInstance().getUID().toHexString(), pushMessage.getFileIndex(), file.getFileName());
+				
+				HttpHundler.hundleHttpGivRequestResponse(fileTransportHost);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			return false;
+		} else {
+			// Pushをリレーする
+			Header pushHeader = pushMessage.getHeader();
+			int newTTL = pushHeader.getTtl() - 1;
+			if (newTTL < 1) {
+				return false;
+			}
+
+			pushHeader.setTtl((byte) newTTL);
+			pushHeader.setHops((byte) (pushHeader.getHops() + 1));
+			pushMessage.setHeader(pushHeader);
+
+			Host toSendHost = routingTable.getNextHost(pushMessage);
+			try {
+				if (toSendHost != null) {
+					toSendHost.getConnection().sendMessage(pushMessage);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return true;
 	}
 }

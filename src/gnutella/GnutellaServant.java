@@ -1,7 +1,10 @@
 package gnutella;
 
+import gnutella.message.GUID;
 import gnutella.message.Header;
 import gnutella.message.PingMessage;
+import gnutella.message.PushMessage;
+import gnutella.message.QueryHitMessage;
 import gnutella.message.QueryMessage;
 import gnutella.share.SharedFile;
 
@@ -87,6 +90,18 @@ public class GnutellaServant {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	public void sendPush(QueryHitMessage queryHit, int fileIndex) {
+		GnutellaManeger maneger = GnutellaManeger.getInstance();
+		Header header = new Header(queryHit.getHeader().getGuid(), Header.PUSH, (byte) (queryHit.getHeader().getHops() + 1), (byte) 1, PushMessage.LENGTH);
+		try {
+			PushMessage push = new PushMessage(header, queryHit.getServentIdentifier(), fileIndex, InetAddress.getLocalHost(), (char) maneger.getPort());
+			Host nextHost = maneger.getRoutingTable().getNextHost(push);
+			nextHost.getConnection().sendMessage(push);
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 

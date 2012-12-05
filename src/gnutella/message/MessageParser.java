@@ -22,7 +22,7 @@ public class MessageParser {
 		case Header.QUERYHIT:
 			return new QueryHitMessage(header, payload);
 		case Header.PUSH:
-			break;
+			return new PushMessage(header, payload);
 		default:
 		}
 		return null;
