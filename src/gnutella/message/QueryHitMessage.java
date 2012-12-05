@@ -124,7 +124,7 @@ public class QueryHitMessage extends Message {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName()+ "{" + super.toString() + " " + String.format("numberofHits:%d port:%d ipAddress:%s speed:%d resultSet:%s serventIdentifier:%s", (int) this.numberofHits, (int) this.port, this.ipAddress.getHostAddress(), this.speed, this.resultSet.toString(), new String(serventIdentifier.getGuid())) + "}";
+		return this.getClass().getSimpleName()+ "{" + super.toString() + " " + String.format("numberofHits:%d port:%d ipAddress:%s speed:%d resultSet:%s serventIdentifier:%s", (int) this.numberofHits, (int) this.port, this.ipAddress.getHostAddress(), this.speed, this.resultSet.toString(), serventIdentifier.toString()) + "}";
 	}
 
 }

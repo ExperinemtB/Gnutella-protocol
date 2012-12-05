@@ -26,6 +26,10 @@ public class GUID {
 		System.arraycopy(diffBytes, 0, this.guid, ipBytes.length, diffBytes.length);
 	}
 
+	public GUID(String hexString) {
+		this.guid = toBytes(hexString);
+	}
+
 	public GUID(byte[] guid) {
 		if (guid.length != LENGTH) {
 			throw new IllegalArgumentException("Size of guid should be " + String.valueOf(LENGTH) + " byte");
@@ -57,4 +61,56 @@ public class GUID {
 		return guid;
 	}
 
+	@Override
+	public String toString() {
+		return toHexString();
+	}
+
+	public String toHexString() {
+		StringBuffer bf = new StringBuffer();
+		for (byte b : this.guid) {
+			bf.append(String.format("%1$02x", b & 0xff));
+		}
+		return bf.toString();
+	}
+
+	public static final byte[] toBytes(String hexString) {
+		if (hexString == null) {
+			throw new NullPointerException("HexString is null");
+		}
+		int length = hexString.length();
+		if (length % 2 != 0) {
+			throw new NumberFormatException("Hex string has odd characters: " + hexString);
+		}
+
+		byte[] data = new byte[length / 2];
+		char highChar, lowChar;
+		byte highNibble, lowNibble;
+		for (int i = 0, offset = 0; i < length; i += 2, offset++) {
+			highChar = hexString.charAt(i);
+			if (highChar >= '0' && highChar <= '9') {
+				highNibble = (byte) (highChar - '0');
+			} else if (highChar >= 'A' && highChar <= 'F') {
+				highNibble = (byte) (10 + highChar - 'A');
+			} else if (highChar >= 'a' && highChar <= 'f') {
+				highNibble = (byte) (10 + highChar - 'a');
+			} else {
+				throw new NumberFormatException("Invalid hex char: " + highChar);
+			}
+
+			lowChar = hexString.charAt(i + 1);
+			if (lowChar >= '0' && lowChar <= '9') {
+				lowNibble = (byte) (lowChar - '0');
+			} else if (lowChar >= 'A' && lowChar <= 'F') {
+				lowNibble = (byte) (10 + lowChar - 'A');
+			} else if (lowChar >= 'a' && lowChar <= 'f') {
+				lowNibble = (byte) (10 + lowChar - 'a');
+			} else {
+				throw new NumberFormatException("Invalid hex char: " + lowChar);
+			}
+
+			data[offset] = (byte) (highNibble << 4 | lowNibble);
+		}
+		return data;
+	}
 }
