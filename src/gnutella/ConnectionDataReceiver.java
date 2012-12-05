@@ -1,11 +1,12 @@
 package gnutella;
 
-import gnutella.Connection.ConnectionStateType;
+import gnutella.GnutellaConnection.ConnectionStateType;
 import gnutella.message.Header;
 import gnutella.message.Message;
 import gnutella.message.MessageParser;
 import gnutella.message.PingMessage;
 import gnutella.message.PongMessage;
+import gnutella.message.PushMessage;
 import gnutella.message.QueryHitMessage;
 import gnutella.message.QueryMessage;
 
@@ -27,8 +28,7 @@ public class ConnectionDataReceiver implements Runnable {
 
 	public synchronized void receiveData() throws IOException {
 		byte[] byteBuffer = new byte[BUFSIZE];
-		Connection connection = remoteHost.getConnection();
-		InputStream is = connection.getInputStream();
+		InputStream is = remoteHost.getConnection().getInputStream();
 		int length = 0;
 		while ((length = is.read(byteBuffer)) != -1) {
 			System.out.println(String.format("\nreceive:%s from:%s:%d", new String(byteBuffer), remoteHost.getConnection().getInetAddress().getHostAddress(), remoteHost.getConnection().getPort()));
@@ -48,18 +48,18 @@ public class ConnectionDataReceiver implements Runnable {
 	}
 
 	private synchronized void parseData() {
-		ConnectionStateType connectionState = remoteHost.getConnection().getConnectionState();
+		ConnectionStateType connectionState = ((GnutellaConnection) remoteHost.getConnection()).getConnectionState();
 		if (connectionState == ConnectionStateType.COLSE) {
-			if (this.receiveByteQueue.size() >= Connection.GNUTELLA_CONNECT_LENGTH) {
-				int readLength = Connection.GNUTELLA_CONNECT_LENGTH;
+			if (this.receiveByteQueue.size() >= GnutellaConnection.GNUTELLA_CONNECT_LENGTH) {
+				int readLength = GnutellaConnection.GNUTELLA_CONNECT_LENGTH;
 				String receiveString = new String(toPrimitive(receiveByteQueue.subList(0, readLength).toArray(new Byte[] {})));
 
-				if (receiveString.equals(Connection.GNUTELLA_CONNECT)) {
+				if (receiveString.equals(GnutellaConnection.GNUTELLA_CONNECT)) {
 					try {
 						System.out.println("Connection Request Received");
 
-						remoteHost.getConnection().sendString(Connection.GNUTELLA_OK);
-						remoteHost.getConnection().setConnectionState(ConnectionStateType.CONNECT);
+						remoteHost.getConnection().sendString(GnutellaConnection.GNUTELLA_OK);
+						((GnutellaConnection) remoteHost.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -68,13 +68,13 @@ public class ConnectionDataReceiver implements Runnable {
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
 			}
 		} else if (connectionState == ConnectionStateType.CONNECTING) {
-			if (this.receiveByteQueue.size() >= Connection.GNUTELLA_OK_LENGTH) {
-				int readLength = Connection.GNUTELLA_OK_LENGTH;
+			if (this.receiveByteQueue.size() >= GnutellaConnection.GNUTELLA_OK_LENGTH) {
+				int readLength = GnutellaConnection.GNUTELLA_OK_LENGTH;
 				String receiveString = new String(toPrimitive(receiveByteQueue.subList(0, readLength).toArray(new Byte[] {})));
-				if (receiveString.equals(Connection.GNUTELLA_OK)) {
+				if (receiveString.equals(GnutellaConnection.GNUTELLA_OK)) {
 					System.out.println("Connection Accepted");
 
-					remoteHost.getConnection().setConnectionState(ConnectionStateType.CONNECT);
+					((GnutellaConnection) remoteHost.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
 				}
 
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
@@ -108,13 +108,14 @@ public class ConnectionDataReceiver implements Runnable {
 					accepted = hundler.hundleQueryHitMessage((QueryHitMessage) message, remoteHost);
 					break;
 				case Header.PUSH:
+					accepted = hundler.hundlePushMessage((PushMessage) message, remoteHost);
 					break;
 				default:
 					break;
 				}
 
 				if (accepted) {
-					GnutellaManeger.getInstance().getRoutingTable().add(remoteHost, message.getHeader().getGuid(), message.getHeader().getPayloadDescriptor());
+					GnutellaManeger.getInstance().getRoutingTable().add(remoteHost, message);
 				}
 
 			}
@@ -142,6 +143,6 @@ public class ConnectionDataReceiver implements Runnable {
 			e.printStackTrace();
 		}
 		GnutellaManeger.getInstance().getHostContainer().removeByAddress(remoteHost.getAddress());
-		remoteHost.getConnection().setConnectionState(ConnectionStateType.COLSE);
+		((GnutellaConnection) remoteHost.getConnection()).setConnectionState(ConnectionStateType.COLSE);
 	}
 }

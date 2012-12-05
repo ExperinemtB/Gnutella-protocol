@@ -35,13 +35,19 @@ public class HostContainer {
 	/**
 	 * 隣接しているホストのインスタンスを生成する
 	 * @param address ホストの接続受信可能なIPAddress, Port
-	 * @param connection そのホストとの接続に使われるConnection
+	 * @param gnutellaConnection そのホストとの接続に使われるConnection
 	 * @return
 	 */
-	public Host createNeighborHost(InetSocketAddress address, Connection connection) {
-		Host host = new Host(address, connection);
+	public Host createNeighborHost(InetSocketAddress address, GnutellaConnection gnutellaConnection) {
+		Host host = new Host(address, gnutellaConnection);
 		host.setHostType(HostType.NEIGHBOR);
 		this.hostMap.put(address, host);
+		return host;
+	}
+	
+	public Host createFileTransportHost(InetSocketAddress address, GnutellaConnection gnutellaConnection) {
+		Host host = new Host(address, gnutellaConnection);
+		host.setHostType(HostType.FILETRANSPORT);
 		return host;
 	}
 

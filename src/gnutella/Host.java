@@ -4,7 +4,7 @@ import java.net.InetSocketAddress;
 
 public class Host {
 	public enum HostType {
-		NETWORK, NEIGHBOR
+		NETWORK, NEIGHBOR , FILETRANSPORT
 	};
 
 	private HostType hostType;
@@ -17,9 +17,9 @@ public class Host {
 		this.setAddress(address);
 	}
 
-	public Host(InetSocketAddress address, Connection connection) {
+	public Host(InetSocketAddress address, GnutellaConnection gnutellaConnection) {
 		this.setAddress(address);
-		this.setConnection(connection);
+		this.setConnection(gnutellaConnection);
 	}
 
 	public Connection getConnection() {

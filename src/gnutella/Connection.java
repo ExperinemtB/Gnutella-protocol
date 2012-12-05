@@ -9,17 +9,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class Connection {
-	public static final String GNUTELLA_CONNECT = "GNUTELLA CONNECT/0.4\n\n";
-	public static final int GNUTELLA_CONNECT_LENGTH = GNUTELLA_CONNECT.getBytes().length;
-	public static final String GNUTELLA_OK = "GNUTELLA OK\n\n";
-	public static final int GNUTELLA_OK_LENGTH = GNUTELLA_OK.getBytes().length;
-
-	public enum ConnectionStateType {
-		COLSE, CONNECTING, CONNECT
-	}
 
 	private Socket socket;
-	private ConnectionStateType connectionState = ConnectionStateType.COLSE;
 
 	public Connection() {
 	}
@@ -28,15 +19,13 @@ public class Connection {
 		this.socket = socket;
 	}
 
-	private void connect(InetAddress address, int port) throws IOException {
+	protected void connect(InetAddress address, int port) throws IOException {
 		socket = new Socket(address, port);
 	}
 
 	public void initConnect(InetAddress address, int port) {
 		try {
 			connect(address, port);
-			setConnectionState(ConnectionStateType.CONNECTING);
-			sendString(GNUTELLA_CONNECT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -46,24 +35,46 @@ public class Connection {
 		return socket.getInputStream();
 	}
 
-	public ConnectionStateType getConnectionState() {
-		return connectionState;
+	public OutputStream getOutputStream() throws IOException {
+		return socket.getOutputStream();
 	}
 
-	public void setConnectionState(ConnectionStateType connectionState) {
-		this.connectionState = connectionState;
-	}
-
-	public void sendMessage(Message message) throws IOException {
-		System.out.println("sendMessage to:" + String.valueOf(socket.getPort()) + " "+message.toString());
-		OutputStream os = this.socket.getOutputStream();
-		os.write(message.getBytes());
+	public String readLine() throws IOException {
+		StringBuffer lineBuffer = new StringBuffer();
+		InputStream is = getInputStream();
+		int c;
+		while (true) {
+			c = is.read();
+			if (c < 0) {
+				if (lineBuffer.length() == 0) {
+					return null;
+				} else {
+					break;
+				}
+			} else if (c == '\r') {
+				continue;
+			} else if (c == '\n') {
+				break;
+			} else {
+				lineBuffer.append((char) c);
+			}
+		}
+		return lineBuffer.toString();
 	}
 
 	public void sendString(String str) throws IOException {
 		System.out.println("sendString:" + str);
-		OutputStream os = this.socket.getOutputStream();
-		os.write(str.getBytes());
+		sendBytes(str.getBytes());
+	}
+
+	public void sendMessage(Message message) throws IOException {
+		System.out.println("sendMessage to:" + String.valueOf(this.getPort()) + " " + message.toString());
+		sendBytes(message.getBytes());
+	}
+
+	protected void sendBytes(byte[] data) throws IOException {
+		OutputStream os = this.getOutputStream();
+		os.write(data);
 	}
 
 	public int getLocalPort() {
@@ -73,7 +84,7 @@ public class Connection {
 	public InetAddress getInetAddress() {
 		return socket.getInetAddress();
 	}
-	
+
 	public int getPort() {
 		return socket.getPort();
 	}

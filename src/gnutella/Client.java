@@ -17,17 +17,17 @@ public class Client implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Connection connection = new Connection();
-			connection.initConnect(address, port);
+			GnutellaConnection gnutellaConnection = new GnutellaConnection();
+			gnutellaConnection.initConnect(address, port);
 			
 			HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
 			InetSocketAddress remoteAddress =  new InetSocketAddress(address, port);
 			Host host =hostContainer.getHostByAddress(remoteAddress);
 			if(host!=null){
 				host.setHostType(HostType.NEIGHBOR);
-				host.setConnection(connection);
+				host.setConnection(gnutellaConnection);
 			}else{
-				host = hostContainer.createNeighborHost(remoteAddress, connection);
+				host = hostContainer.createNeighborHost(remoteAddress, gnutellaConnection);
 			}
 			ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
 			dataReceiver.run();
