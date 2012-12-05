@@ -17,13 +17,13 @@ public class SharedFileContainer {
 		return this.totalFileSizeKb;
 	}
 
-	public void addSharedFile(SharedFile shareFile) {
-		File file = shareFile.getOriginFile();
+	public Boolean addFile(File file) {
 		if (getFileByAbsolutePath(file.getAbsolutePath()) != null || !file.exists()) {
-			return;
+			return false;
 		}
+		SharedFile shareFile = new SharedFile(sharedFileList.size(),file.getName(),file);
 		totalFileSizeKb += file.length() / 1024;
-		sharedFileList.add(shareFile);
+		return sharedFileList.add(shareFile);
 	}
 
 	public SharedFile getFileByName(String fileName) {
@@ -62,5 +62,14 @@ public class SharedFileContainer {
 			}
 		}
 		return resultList.toArray(new SharedFile[] {});
+	}
+
+	public SharedFile getSharedFileByFileIndex(int fileIndex) {
+		for (SharedFile file : sharedFileList) {
+			if (file.getFileIndex() == fileIndex) {
+				return file;
+			}
+		}
+		return null;
 	}
 }

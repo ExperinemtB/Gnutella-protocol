@@ -6,7 +6,6 @@ import gnutella.message.PingMessage;
 import gnutella.message.PushMessage;
 import gnutella.message.QueryHitMessage;
 import gnutella.message.QueryMessage;
-import gnutella.share.SharedFile;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,7 +24,7 @@ public class GnutellaServant {
 	 */
 	public static void main(String[] args) {
 		GnutellaServant servernt = new GnutellaServant();
-
+		
 		if (args.length >= 2) {
 			int port = Integer.parseInt(args[1]);
 			if (args[0].equals("0")) {
@@ -60,6 +59,11 @@ public class GnutellaServant {
 						servernt.addFile(cmd[1]);
 					} else if (cmd[0].equals("sendQuery")) {
 						servernt.sendQuery(cmd[1], Integer.parseInt(cmd[2]));
+					} else if (cmd[0].equals("sendDownloadRequest")) {
+						servernt.sendDownloadRequest(InetAddress.getLocalHost(), Integer.parseInt(cmd[1]), Integer.parseInt(cmd[2]), cmd[3]);
+					} else if (cmd[0].equals("sendPush")) {
+						// とりあえずHeaderのGUIDとServerIdentifier,TTL指定する
+						servernt.sendPush(new QueryHitMessage(new Header(new GUID(cmd[1]), Header.QUERYHIT, (byte) 0, (byte) Integer.parseInt(cmd[2]), PushMessage.LENGTH), (byte) 0, (char) 0, null, 0, null, new GUID(cmd[3])), Integer.parseInt(cmd[4]));
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -121,8 +125,20 @@ public class GnutellaServant {
 
 	public void addFile(String path) {
 		File localFile = new File(path);
-		SharedFile file = new SharedFile(0, localFile.getName(), localFile);
-		GnutellaManeger.getInstance().getSharedFileContainer().addSharedFile(file);
+		Boolean addSuccess = GnutellaManeger.getInstance().getSharedFileContainer().addFile(localFile);
+		if (addSuccess) {
+			System.out.println("addedFile:" + localFile.getName());
+		}
+	}
+
+	public void sendDownloadRequest(InetAddress address, int port, int fileIndex, String fileName) {
+		// TODO: 対象ファイルと1対1対応するDownloadEnginクラス(Runable)を実行し、その中でHTTP GET/GIVを送ったり、分割DLの管理を行う
+		// QueryHitの一覧中から任意の結果を選択し、そのIP:Portに対して新たなコネクションを作成、HTTP GETを試みる。
+		// ただし、相手がファイアーウォール内にいるときはGnutellNetwork上でPushメッセージを送り、(向こうからのコネクション作成を待機する)
+		// HTTP GETにはFileIndex,FileNameが必要。QueryHitMessageのインスタンスで十分
+		
+		DownloadClient client = new DownloadClient(address, port, fileIndex, fileName);
+		GnutellaManeger.getInstance().executeOnThreadPool(client);
 	}
 
 	public void stop() {

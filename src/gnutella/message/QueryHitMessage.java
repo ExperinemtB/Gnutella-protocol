@@ -75,7 +75,7 @@ public class QueryHitMessage extends Message {
 		int resultSetContentBytesLength = 0;
 		List<byte[]> resultSetContentBytesList = new ArrayList<byte[]>();
 		for (int i = 0; i < this.numberofHits; i++) {
-			byte[] resultSetBytes = this.resultSet.getByFileIndex(i).getBytes();
+			byte[] resultSetBytes = this.resultSet.getElementAt(i).getBytes();
 			resultSetContentBytesLength += resultSetBytes.length;
 			resultSetContentBytesList.add(resultSetBytes);
 		}

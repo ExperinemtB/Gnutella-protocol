@@ -49,6 +49,10 @@ public class ResultSet {
 		}
 		return null;
 	}
+	
+	public ResultSetContent getElementAt(int index) {
+		return this.resultSetContentList.get(index);
+	}
 
 	@Override
 	public String toString() {

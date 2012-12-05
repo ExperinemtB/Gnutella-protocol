@@ -185,9 +185,9 @@ public class MessageHundler {
 		Header queryHitHeader = queryHitMessage.getHeader();
 		int newTTL = queryHitHeader.getTtl() - 1;
 		if (newTTL < 1) {
-			return false;
+			return true;
 		}
-
+	
 		queryHitHeader.setTtl((byte) newTTL);
 		queryHitHeader.setHops((byte) (queryHitHeader.getHops() + 1));
 		queryHitMessage.setHeader(queryHitHeader);

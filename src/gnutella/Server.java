@@ -1,5 +1,6 @@
 package gnutella;
 
+import gnutella.GnutellaConnection.ConnectionStateType;
 import gnutella.Host.HostType;
 import gnutella.message.GUID;
 
@@ -7,6 +8,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.regex.Pattern;
 
 public class Server implements Runnable {
 	private int port;
@@ -28,21 +30,55 @@ public class Server implements Runnable {
 
 			while (true) {
 				Socket socket = serverSocket.accept();
-
 				Connection connection = new Connection(socket);
-				InetSocketAddress remoteAddress = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
-				HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
-				Host host = hostContainer.getHostByAddress(remoteAddress);
-				if (host != null) {
-					host.setHostType(HostType.NEIGHBOR);
-					host.setConnection(connection);
-				} else {
-					// remoteAddressのportは待ち受けポートではない
-					// Pongを受け取った際に更新する
-					host = hostContainer.createNeighborHost(remoteAddress, connection);
+				String requestLine = connection.readLine();
+
+				if ((requestLine + "\n\n").startsWith(GnutellaConnection.GNUTELLA_CONNECT)) {
+					System.out.println("Connection Request Received");
+					// 改行2行で区切られているためもう一行進める
+					connection.readLine();
+
+					GnutellaConnection gnutellaConnection = new GnutellaConnection(socket);
+					InetSocketAddress remoteAddress = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
+					HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
+					Host host = hostContainer.getHostByAddress(remoteAddress);
+					if (host != null) {
+						host.setHostType(HostType.NEIGHBOR);
+						host.setConnection(gnutellaConnection);
+					} else {
+						// remoteAddressのportは待ち受けポートではない
+						// Pongを受け取った際に更新する
+						host = hostContainer.createNeighborHost(remoteAddress, gnutellaConnection);
+					}
+					ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
+					GnutellaManeger.getInstance().executeOnThreadPool(dataReceiver);
+
+					host.getConnection().sendString(GnutellaConnection.GNUTELLA_OK);
+					((GnutellaConnection) host.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
+				} else if (Pattern.matches(DownloadConnection.HTTP_GET_REQUEST_PATTERN, requestLine)) {
+					System.out.println("Hundle Get Request");
+
+					HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
+					InetSocketAddress remoteAddress = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
+					DownloadConnection downloadConnection = new DownloadConnection(socket);
+					Host host = hostContainer.createFileTransportHost(remoteAddress, downloadConnection);
+
+					// リクエストをパースし、要求されたファイルを返す
+					// 要求元が新しいコネクションを貼ってきているため、hostのConnectionに対してファイルの内容を送る
+					Runnable getRequestHundler = HttpHundler.hundleHttpGetRequest(requestLine, host);
+					GnutellaManeger.getInstance().executeOnThreadPool(getRequestHundler);
+				} 
+				else if (Pattern.matches(DownloadConnection.HTTP_GIV_REQUEST_PATTERN, requestLine)) {
+					System.out.println("Hundle Giv Request");
+					
+					HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
+					InetSocketAddress remoteAddress = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
+					
+					// 相手側からコネクションを作成してくれたため、このコネクションにGETリクエストを送る
+					DownloadConnection filrTransportConnection = new DownloadConnection(socket);
+					Host remoteHost = hostContainer.createFileTransportHost(remoteAddress, filrTransportConnection);
+					HttpHundler.hundleHttpGivRequest(requestLine, remoteHost);
 				}
-				ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
-				GnutellaManeger.getInstance().executeOnThreadPool(dataReceiver);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
