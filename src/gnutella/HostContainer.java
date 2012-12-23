@@ -4,16 +4,15 @@ import gnutella.Host.HostType;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HostContainer {
-	private Map<InetSocketAddress, Host> hostMap;
+	private ConcurrentHashMap<InetSocketAddress, Host> hostMap;
 
 	public HostContainer() {
-		this.hostMap = new HashMap<InetSocketAddress, Host>();
+		this.hostMap = new ConcurrentHashMap<InetSocketAddress, Host>();
 	}
 
 	public void addHost(InetSocketAddress address, Host host) {
