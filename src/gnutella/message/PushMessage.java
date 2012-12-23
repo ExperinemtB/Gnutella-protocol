@@ -57,7 +57,7 @@ public class PushMessage extends Message {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + "{" + super.toString() + " " + String.format("GUID:%s fileIndex:%d ipAddress:%s port:%c", serventIdentifier.toString(), this.fileIndex, this.ipAddress.toString(), this.port) + "}";
+		return this.getClass().getSimpleName() + "{" + super.toString() + " " + String.format("GUID:%s fileIndex:%d ipAddress:%s port:%d", serventIdentifier.toString(), this.fileIndex, this.ipAddress.toString(), (int)this.port) + "}";
 	}
 
 	public GUID getServentIdentifier() {

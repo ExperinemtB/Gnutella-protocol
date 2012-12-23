@@ -8,6 +8,7 @@ public class ResultSetContent {
 	private int fileIndex;
 	private int fileSize;
 	private String fileName;
+	private byte[] fileMD5digest;
 
 	public ResultSetContent(byte[] resultSetContentBytes) {
 	}

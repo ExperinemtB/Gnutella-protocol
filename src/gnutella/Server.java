@@ -12,9 +12,12 @@ import java.util.regex.Pattern;
 
 public class Server implements Runnable {
 	private int port;
+	private HttpHundler httpHundler;
+	private ServerEventListener serverEventListener;
 
 	public Server(int port) {
 		this.port = port;
+		this.httpHundler = new HttpHundler();
 	}
 
 	@Override
@@ -50,8 +53,11 @@ public class Server implements Runnable {
 						// Pongを受け取った際に更新する
 						host = hostContainer.createNeighborHost(remoteAddress, gnutellaConnection);
 					}
-					ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
-					GnutellaManeger.getInstance().executeOnThreadPool(dataReceiver);
+
+					for (int i = 0; i < GnutellaManeger.getInstance().getMAX_SERVER_EXECUTE(); i++) {
+						ConnectionDataReceiver dataReceiver = new ConnectionDataReceiver(host);
+						GnutellaManeger.getInstance().executeOnThreadPool(dataReceiver);
+					}
 
 					host.getConnection().sendString(GnutellaConnection.GNUTELLA_OK);
 					((GnutellaConnection) host.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
@@ -67,17 +73,16 @@ public class Server implements Runnable {
 					// 要求元が新しいコネクションを貼ってきているため、hostのConnectionに対してファイルの内容を送る
 					Runnable getRequestHundler = HttpHundler.hundleHttpGetRequest(requestLine, host);
 					GnutellaManeger.getInstance().executeOnThreadPool(getRequestHundler);
-				} 
-				else if (Pattern.matches(DownloadConnection.HTTP_GIV_REQUEST_PATTERN, requestLine)) {
+				} else if (Pattern.matches(DownloadConnection.HTTP_GIV_REQUEST_PATTERN, requestLine)) {
 					System.out.println("Hundle Giv Request");
-					
+
 					HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
 					InetSocketAddress remoteAddress = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
-					
+
 					// 相手側からコネクションを作成してくれたため、このコネクションにGETリクエストを送る
 					DownloadConnection filrTransportConnection = new DownloadConnection(socket);
 					Host remoteHost = hostContainer.createFileTransportHost(remoteAddress, filrTransportConnection);
-					HttpHundler.hundleHttpGivRequest(requestLine, remoteHost);
+					GnutellaManeger.getInstance().executeOnThreadPool(httpHundler.hundleHttpGivRequest(requestLine, remoteHost));
 				}
 			}
 		} catch (Exception ex) {
@@ -89,5 +94,11 @@ public class Server implements Runnable {
 				ex.printStackTrace();
 			}
 		}
+	public HttpHundler getHttpHundler() {
+		return httpHundler;
+	}
+
+	public void setServerEventListener(ServerEventListener serverEventListener) {
+		this.serverEventListener = serverEventListener;
 	}
 }

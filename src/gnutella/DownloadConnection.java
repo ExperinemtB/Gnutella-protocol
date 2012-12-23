@@ -1,10 +1,12 @@
 package gnutella;
 
+import gnutella.HttpHundler.Range;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class DownloadConnection extends GnutellaConnection {
+public class DownloadConnection extends Connection {
 	public static final String HTTP_GET_REQUEST_PREFIX = "GET";
 	public static final String HTTP_GET_REQUEST_PATTERN = "GET /get/([0-9]+?)/(.+?)/ HTTP/1\\.0";
 	public static final String HTTP_RESPONSE_PATTERN = "HTTP ([0-9]+?) (.*?)";
@@ -32,6 +34,12 @@ public class DownloadConnection extends GnutellaConnection {
 		System.out.println("send http get request:" + httpGetString);
 		sendBytes(httpGetString.getBytes());
 	}
+	
+	public void sendHttpGetRequest(int fileIndex, String fileName,Range range) throws IOException {
+		String httpGetString = generateHttpGetMessage(fileIndex, fileName,range);
+		System.out.println(String.format("send http get request(%s:%d) :%s",this.getInetAddress().toString(),this.getPort(),httpGetString));
+		sendBytes(httpGetString.getBytes());
+	}
 
 	public void sendHttpGivRequest(String serventIdentifierString, int fileIndex, String fileName) throws IOException {
 		String httpGivString = generateHttpGivMessage(serventIdentifierString, fileIndex, fileName);
@@ -50,6 +58,19 @@ public class DownloadConnection extends GnutellaConnection {
 		return sb.toString();
 	}
 
+	
+	private static String generateHttpGetMessage(int fileIndex, String fileName,Range range) {
+		// GET /get/<File Index>/<File Name>/ HTTP/1.0\r\n
+		// Connection: Keep-Alive\r\n
+		// \r\n
+		StringBuffer sb = new StringBuffer();
+		sb.append(String.format("GET /get/%d/%s/ HTTP/1.0\r\n", fileIndex, fileName));
+		sb.append("Connection: Keep-Alive\r\n");
+		sb.append(String.format("Range: bytes=%d-%d\r\n",range.start,range.end));
+		sb.append("\r\n");
+		return sb.toString();
+	}
+	
 	private static String generateHttpGivMessage(String serventIdentifierString, int fileIndex, String fileName) {
 		// GIV <File Index>:<Servent Identifier>/<File Name>\n\n
 		return String.format("GIV %d:%s/%s\n\n", fileIndex, serventIdentifierString, fileName);
