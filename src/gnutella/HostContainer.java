@@ -44,7 +44,7 @@ public class HostContainer {
 		return host;
 	}
 	
-	public Host createFileTransportHost(InetSocketAddress address, GnutellaConnection gnutellaConnection) {
+	public Host createFileTransportHost(InetSocketAddress address, Connection gnutellaConnection) {
 		Host host = new Host(address, gnutellaConnection);
 		host.setHostType(HostType.FILETRANSPORT);
 		return host;

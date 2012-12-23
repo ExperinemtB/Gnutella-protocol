@@ -14,12 +14,12 @@ public class Host {
 	private int sharedFileTotalSizeKb;
 
 	public Host(InetSocketAddress address) {
-		this.setAddress(address);
+		this.address = address;
 	}
 
-	public Host(InetSocketAddress address, GnutellaConnection gnutellaConnection) {
-		this.setAddress(address);
-		this.setConnection(gnutellaConnection);
+	public Host(InetSocketAddress address, Connection connection) {
+		this.address = address;
+		this.connection = connection;
 	}
 
 	public Connection getConnection() {
@@ -61,5 +61,4 @@ public class Host {
 	public void setSharedFileTotalSizeKb(int sharedFileTotalSizeKb) {
 		this.sharedFileTotalSizeKb = sharedFileTotalSizeKb;
 	}
-
 }

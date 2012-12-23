@@ -1,5 +1,6 @@
 package gnutella;
 
+import gnutella.listener.MessageReceiveListener;
 import gnutella.message.Header;
 import gnutella.message.PingMessage;
 import gnutella.message.PongMessage;
@@ -15,14 +16,16 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 public class MessageHundler {
+	private GnutellaManeger maneger;
 	private RoutingTable routingTable;
 	private SharedFileContainer sharedFileContainer;
 	private HostContainer hostContainer;
 
 	public MessageHundler() {
-		GnutellaManeger maneger = GnutellaManeger.getInstance();
+		this.maneger = GnutellaManeger.getInstance();
 		this.sharedFileContainer = maneger.getSharedFileContainer();
 		this.routingTable = maneger.getRoutingTable();
 		this.hostContainer = GnutellaManeger.getInstance().getHostContainer();
@@ -31,6 +34,15 @@ public class MessageHundler {
 	public boolean hundlePingMessage(PingMessage pingMessage, Host remoteHost) {
 		boolean accepted = true;
 		Header pingHeader = pingMessage.getHeader();
+
+		List<MessageReceiveListener> messageReceiveListenerList = maneger.getMessageReceiveListeners();
+		for (MessageReceiveListener messageReceiveListener : messageReceiveListenerList) {
+			messageReceiveListener.onReceivePingMessage(pingMessage, remoteHost);
+		}
+		List<MessageReceiveListener> filteredMessageReceiveListenerList = maneger.getMessageReceiveListeners(pingHeader.getGuid());
+		for (MessageReceiveListener messageReceiveListener : filteredMessageReceiveListenerList) {
+			messageReceiveListener.onReceivePingMessage(pingMessage, remoteHost);
+		}
 
 		if (routingTable.isMessageAlreadyReceived(pingHeader.getGuid(), pingHeader.getPayloadDescriptor())) {
 			System.out.println("isMessageAlreadyReceived");
@@ -53,6 +65,7 @@ public class MessageHundler {
 		// Pingを隣接ノードに送る
 		int newTTL = pingHeader.getTtl() - 1;
 		if (newTTL < 1) {
+			System.out.println("TTL < 1");
 			return false;
 		}
 
@@ -74,6 +87,15 @@ public class MessageHundler {
 	}
 
 	public boolean hundlePongMessage(PongMessage pongMessage, Host remoteHost) {
+		List<MessageReceiveListener> messageReceiveListenerList = maneger.getMessageReceiveListeners();
+		for (MessageReceiveListener messageReceiveListener : messageReceiveListenerList) {
+			messageReceiveListener.onReceivePongMessage(pongMessage, remoteHost);
+		}
+		List<MessageReceiveListener> filteredMessageReceiveListenerList = maneger.getMessageReceiveListeners(pongMessage.getHeader().getGuid());
+		for (MessageReceiveListener messageReceiveListener : filteredMessageReceiveListenerList) {
+			messageReceiveListener.onReceivePongMessage(pongMessage, remoteHost);
+		}
+
 		// ////////Pongの内容をローカルに保存する
 		// 隣接ノードの自身のPingに対する応答の時
 		if (pongMessage.getHeader().getHops() == 1) {
@@ -107,6 +129,7 @@ public class MessageHundler {
 		Header pongHeader = pongMessage.getHeader();
 		int newTTL = pongHeader.getTtl() - 1;
 		if (newTTL < 1) {
+			System.out.println("TTL < 1");
 			return false;
 		}
 
@@ -118,6 +141,8 @@ public class MessageHundler {
 		try {
 			if (toSendHost != null) {
 				toSendHost.getConnection().sendMessage(pongMessage);
+			} else {
+				System.err.println("Host to forward is not found");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -127,6 +152,15 @@ public class MessageHundler {
 	}
 
 	public boolean hundleQueryMessage(QueryMessage queryMessage, Host remoteHost) {
+		List<MessageReceiveListener> messageReceiveListenerList = maneger.getMessageReceiveListeners();
+		for (MessageReceiveListener messageReceiveListener : messageReceiveListenerList) {
+			messageReceiveListener.onReceiveQueryMessage(queryMessage, remoteHost);
+		}
+		List<MessageReceiveListener> filteredMessageReceiveListenerList = maneger.getMessageReceiveListeners(queryMessage.getHeader().getGuid());
+		for (MessageReceiveListener messageReceiveListener : filteredMessageReceiveListenerList) {
+			messageReceiveListener.onReceiveQueryMessage(queryMessage, remoteHost);
+		}
+
 		Header queryHeader = queryMessage.getHeader();
 
 		if (routingTable.isMessageAlreadyReceived(queryHeader.getGuid(), queryHeader.getPayloadDescriptor())) {
@@ -160,6 +194,7 @@ public class MessageHundler {
 		// Queryを隣接ノードに送る
 		int newTTL = queryHeader.getTtl() - 1;
 		if (newTTL < 1) {
+			System.out.println("TTL < 1");
 			return false;
 		}
 
@@ -181,13 +216,23 @@ public class MessageHundler {
 	}
 
 	public boolean hundleQueryHitMessage(QueryHitMessage queryHitMessage, Host remoteHost) {
+		List<MessageReceiveListener> messageReceiveListenerList = maneger.getMessageReceiveListeners();
+		for (MessageReceiveListener messageReceiveListener : messageReceiveListenerList) {
+			messageReceiveListener.onReceiveQueryHitMessage(queryHitMessage, remoteHost);
+		}
+		List<MessageReceiveListener> filteredMessageReceiveListenerList = maneger.getMessageReceiveListeners(queryHitMessage.getHeader().getGuid());
+		for (MessageReceiveListener messageReceiveListener : filteredMessageReceiveListenerList) {
+			messageReceiveListener.onReceiveQueryHitMessage(queryHitMessage, remoteHost);
+		}
+
 		// QueryHitをリレーする
 		Header queryHitHeader = queryHitMessage.getHeader();
 		int newTTL = queryHitHeader.getTtl() - 1;
 		if (newTTL < 1) {
+			System.out.println("TTL < 1");
 			return true;
 		}
-	
+
 		queryHitHeader.setTtl((byte) newTTL);
 		queryHitHeader.setHops((byte) (queryHitHeader.getHops() + 1));
 		queryHitMessage.setHeader(queryHitHeader);
@@ -196,6 +241,8 @@ public class MessageHundler {
 		try {
 			if (toSendHost != null) {
 				toSendHost.getConnection().sendMessage(queryHitMessage);
+			} else {
+				System.err.println("Host to forward is not found");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -205,20 +252,30 @@ public class MessageHundler {
 	}
 
 	public boolean hundlePushMessage(PushMessage pushMessage, Host remoteHost) {
+		List<MessageReceiveListener> messageReceiveListenerList = maneger.getMessageReceiveListeners();
+		for (MessageReceiveListener messageReceiveListener : messageReceiveListenerList) {
+			messageReceiveListener.onReceivePushMessage(pushMessage, remoteHost);
+		}
+		List<MessageReceiveListener> filteredMessageReceiveListenerList = maneger.getMessageReceiveListeners(pushMessage.getHeader().getGuid());
+		for (MessageReceiveListener messageReceiveListener : filteredMessageReceiveListenerList) {
+			messageReceiveListener.onReceivePushMessage(pushMessage, remoteHost);
+		}
+
 		// 自身に対するPushのとき
 		if (pushMessage.getServentIdentifier().equals(GnutellaManeger.getInstance().getUID())) {
 			// ファイル転送専用のコネクションを新たに張る
 			DownloadConnection fileTransportConnection = new DownloadConnection();
 			try {
-				InetSocketAddress fileTransportRemoteAddress = new InetSocketAddress(pushMessage.getIpAddress(),  pushMessage.getPort());
-				HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();				
+				InetSocketAddress fileTransportRemoteAddress = new InetSocketAddress(pushMessage.getIpAddress(), pushMessage.getPort());
+				HostContainer hostContainer = GnutellaManeger.getInstance().getHostContainer();
 				fileTransportConnection.connect(pushMessage.getIpAddress(), pushMessage.getPort());
 				Host fileTransportHost = hostContainer.createFileTransportHost(fileTransportRemoteAddress, fileTransportConnection);
-				
+
 				SharedFile file = sharedFileContainer.getSharedFileByFileIndex(pushMessage.getFileIndex());
 				fileTransportConnection.sendHttpGivRequest(GnutellaManeger.getInstance().getUID().toHexString(), pushMessage.getFileIndex(), file.getFileName());
-				
-				HttpHundler.hundleHttpGivRequestResponse(fileTransportHost);
+
+				Runnable hundleHttpGivRequestResponse = HttpHundler.hundleHttpGivRequestResponse(fileTransportHost);
+				GnutellaManeger.getInstance().executeOnThreadPool(hundleHttpGivRequestResponse);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -228,6 +285,7 @@ public class MessageHundler {
 			Header pushHeader = pushMessage.getHeader();
 			int newTTL = pushHeader.getTtl() - 1;
 			if (newTTL < 1) {
+				System.out.println("TTL < 1");
 				return false;
 			}
 
@@ -239,6 +297,8 @@ public class MessageHundler {
 			try {
 				if (toSendHost != null) {
 					toSendHost.getConnection().sendMessage(pushMessage);
+				} else {
+					System.err.println("Host to forward is not found");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

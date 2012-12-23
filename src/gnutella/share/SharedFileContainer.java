@@ -21,7 +21,7 @@ public class SharedFileContainer {
 		if (getFileByAbsolutePath(file.getAbsolutePath()) != null || !file.exists()) {
 			return false;
 		}
-		SharedFile shareFile = new SharedFile(sharedFileList.size(),file.getName(),file);
+		SharedFile shareFile = new SharedFile(sharedFileList.size(), file.getName(), file);
 		totalFileSizeKb += file.length() / 1024;
 		return sharedFileList.add(shareFile);
 	}
@@ -71,5 +71,21 @@ public class SharedFileContainer {
 			}
 		}
 		return null;
+	}
+
+	public SharedFile[] getsharedFileArray() {
+		return this.sharedFileList.toArray(new SharedFile[] {});
+	}
+
+	public boolean removeSharedFileByFilePath(String filePath) {
+		File file = new File(filePath);
+		return removeSharedFile(file);
+	}
+	public boolean removeSharedFile(File file) {
+		SharedFile result = this.getFileByAbsolutePath(file.getAbsolutePath());
+		if (result == null) {
+			return false;
+		}
+		return this.sharedFileList.remove(result);
 	}
 }

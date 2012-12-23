@@ -24,14 +24,10 @@ public class GnutellaConnection extends Connection {
 	}
 
 	@Override
-	public void initConnect(InetAddress address, int port) {
-		try {
-			connect(address, port);
-			setConnectionState(ConnectionStateType.CONNECTING);
-			sendString(GNUTELLA_CONNECT);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void initConnect(InetAddress address, int port) throws IOException {
+		connect(address, port);
+		setConnectionState(ConnectionStateType.CONNECTING);
+		sendString(GNUTELLA_CONNECT);
 	}
 
 	public ConnectionStateType getConnectionState() {

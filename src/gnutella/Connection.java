@@ -22,13 +22,13 @@ public class Connection {
 	protected void connect(InetAddress address, int port) throws IOException {
 		socket = new Socket(address, port);
 	}
+	
+	protected void close() throws IOException {
+		this.socket.close();
+	}
 
-	public void initConnect(InetAddress address, int port) {
-		try {
-			connect(address, port);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void initConnect(InetAddress address, int port) throws IOException {
+		connect(address, port);
 	}
 
 	public InputStream getInputStream() throws IOException {
@@ -88,5 +88,8 @@ public class Connection {
 	public int getPort() {
 		return socket.getPort();
 	}
-
+	
+	public boolean isConnected(){
+		return socket.isConnected();
+	}
 }

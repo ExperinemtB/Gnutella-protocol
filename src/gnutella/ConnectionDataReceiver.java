@@ -1,6 +1,7 @@
 package gnutella;
 
 import gnutella.GnutellaConnection.ConnectionStateType;
+import gnutella.listener.ConnectionEventListener;
 import gnutella.message.Header;
 import gnutella.message.Message;
 import gnutella.message.MessageParser;
@@ -12,11 +13,11 @@ import gnutella.message.QueryMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectionDataReceiver implements Runnable {
+	private GnutellaManeger maneger = GnutellaManeger.getInstance();
 	private List<Byte> receiveByteQueue;
 	private final static int BUFSIZE = 1024;
 	private Host remoteHost;
@@ -44,7 +45,6 @@ public class ConnectionDataReceiver implements Runnable {
 			byteBuffer = new byte[BUFSIZE];
 		}
 		is.close();
-		throw new SocketException("Connection closed");
 	}
 
 	private synchronized void parseData() {
@@ -60,6 +60,12 @@ public class ConnectionDataReceiver implements Runnable {
 
 						remoteHost.getConnection().sendString(GnutellaConnection.GNUTELLA_OK);
 						((GnutellaConnection) remoteHost.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
+
+						ConnectionEventListener connectionEventListener = maneger.getConnectionEventListener();
+						if (connectionEventListener != null) {
+							maneger.getConnectionEventListener().onConnect(remoteHost);
+						}
+
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -75,6 +81,11 @@ public class ConnectionDataReceiver implements Runnable {
 					System.out.println("Connection Accepted");
 
 					((GnutellaConnection) remoteHost.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
+
+					ConnectionEventListener connectionEventListener = maneger.getConnectionEventListener();
+					if (connectionEventListener != null) {
+						maneger.getConnectionEventListener().onConnect(remoteHost);
+					}
 				}
 
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
@@ -140,9 +151,26 @@ public class ConnectionDataReceiver implements Runnable {
 		try {
 			receiveData();
 		} catch (IOException e) {
-			e.printStackTrace();
+			// 接続が切れた時を想定しているのであえて無視
+		} catch (NullPointerException e) {
+			// 接続が切れた時を想定しているのであえて無視
+		} catch (Exception ex) {
+			// 想定していない例外のためイベント発火
+			ConnectionEventListener connectionEventListener = maneger.getConnectionEventListener();
+			if (connectionEventListener != null) {
+				connectionEventListener.onThrowable(ex);
+			} else {
+				ex.printStackTrace();
+			}
 		}
-		GnutellaManeger.getInstance().getHostContainer().removeByAddress(remoteHost.getAddress());
-		((GnutellaConnection) remoteHost.getConnection()).setConnectionState(ConnectionStateType.COLSE);
+		Host deletedHost = maneger.getHostContainer().removeByAddress(remoteHost.getAddress());
+		if (deletedHost != null) {
+			((GnutellaConnection) deletedHost.getConnection()).setConnectionState(ConnectionStateType.COLSE);
+			ConnectionEventListener connectionEventListener = maneger.getConnectionEventListener();
+			if (connectionEventListener != null) {
+				maneger.getConnectionEventListener().onClose(deletedHost);
+			}
+		}
+
 	}
 }

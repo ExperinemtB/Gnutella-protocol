@@ -2,6 +2,8 @@ package gnutella;
 
 import gnutella.GnutellaConnection.ConnectionStateType;
 import gnutella.Host.HostType;
+import gnutella.listener.ConnectionEventListener;
+import gnutella.listener.ServerEventListener;
 import gnutella.message.GUID;
 
 import java.net.InetAddress;
@@ -30,7 +32,10 @@ public class Server implements Runnable {
 			GnutellaManeger.getInstance().setUID(new GUID(InetAddress.getLocalHost()));
 
 			System.out.println("Start Server on:" + String.valueOf(this.port));
-
+			if (this.serverEventListener != null) {
+				serverEventListener.onStart(serverSocket.getLocalPort(), serverSocket.getInetAddress());
+			}
+			
 			while (true) {
 				Socket socket = serverSocket.accept();
 				Connection connection = new Connection(socket);
@@ -61,6 +66,12 @@ public class Server implements Runnable {
 
 					host.getConnection().sendString(GnutellaConnection.GNUTELLA_OK);
 					((GnutellaConnection) host.getConnection()).setConnectionState(ConnectionStateType.CONNECT);
+
+					ConnectionEventListener connectionEventListener = GnutellaManeger.getInstance().getConnectionEventListener();
+					if (connectionEventListener != null) {
+						GnutellaManeger.getInstance().getConnectionEventListener().onConnect(host);
+					}
+
 				} else if (Pattern.matches(DownloadConnection.HTTP_GET_REQUEST_PATTERN, requestLine)) {
 					System.out.println("Hundle Get Request");
 
@@ -86,14 +97,25 @@ public class Server implements Runnable {
 				}
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			if (this.serverEventListener != null) {
+				serverEventListener.onThrowable(ex);
+			}else{
+				ex.printStackTrace();
+			}
 		} finally {
 			try {
-				serverSocket.close();
+				if (serverSocket != null) {
+					serverSocket.close();
+				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
+		if (this.serverEventListener != null) {
+			serverEventListener.onStop();
+		}
+	}
+
 	public HttpHundler getHttpHundler() {
 		return httpHundler;
 	}
