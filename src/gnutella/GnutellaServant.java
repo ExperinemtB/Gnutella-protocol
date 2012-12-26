@@ -72,7 +72,7 @@ public class GnutellaServant {
 					} else if (cmd[0].equals("sendPush")) {
 						// とりあえずHeaderのGUIDとServerIdentifier,TTL指定する
 						servernt.sendPush(new QueryHitMessage(new Header(new GUID(cmd[1]), Header.QUERYHIT, (byte) 0, (byte) Integer.parseInt(cmd[2]), PushMessage.LENGTH), (byte) 0, (char) 0, null, 0, null, new GUID(cmd[3])), Integer.parseInt(cmd[4]));
-					} 
+					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -250,7 +250,7 @@ public class GnutellaServant {
 	 * Pushメッセージを送るべきか直接HTTP接続を行うかは自動的に判断される。<br>
 	 * 以前に受信したことのあるQueryHitメッセージと、それに含まれるResultSet中の目的のファイルのFileIndexをセットにして渡す。複数渡すと分割DLを行う。<br>
 	 * <br>
-	 * 例 <blockquote> {@code 
+	 * 例 <blockquote> {@code
 	 *   List<SimpleEntry<Integer, QueryHitMessage>> maps = new ArrayList<SimpleEntry<Integer, QueryHitMessage>>();
 	 *   maps.add(new SimpleEntry<Integer, QueryHitMessage>(0, queryHitMessage));
 	 *   servernt.sendDownloadRequest(maps);
