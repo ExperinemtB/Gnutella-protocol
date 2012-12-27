@@ -29,7 +29,6 @@ public class View extends JFrame implements Observer{
 	private JTextField fileNameText;
 
 	public View(Model model){
-		JFrame frame = new JFrame("Gnutella");
 		setSize(200,200);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -57,11 +56,12 @@ public class View extends JFrame implements Observer{
 		panel.add(queryButton);
 		panel.add(addFileButton);
 		panel.add(outputArea);
+		panel.add(scrollpane);
 
 		Container contentPane = getContentPane();
 		contentPane.add(panel, BorderLayout.CENTER);
 
-		frame.setVisible(true);
+		setVisible(true);
 	}
 
 	public void addToButtonActionListener(ActionListener actionListener){

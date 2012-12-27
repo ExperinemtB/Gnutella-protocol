@@ -1,7 +1,13 @@
 package gnutella.gui;
 
 import gnutella.GnutellaServant;
+import gnutella.listener.DownloadWorkerEventListener;
+import gnutella.listener.MessageReceiveListener;
+import gnutella.listener.ServerEventListener;
+import gnutella.message.PingMessage;
+import gnutella.message.PongMessage;
 import gnutella.message.QueryHitMessage;
+import gnutella.message.QueryMessage;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
@@ -18,52 +24,55 @@ public class Model extends Observable{
 	private List<SimpleEntry<Integer, QueryHitMessage>> maps;
 
 	private GnutellaServant servant;
+	private ServerEventListener serverEventListener;
+	private MessageReceiveListener messageReceiveListener;
+	private DownloadWorkerEventListener downloadWorkerEventListener;
 
 	public Model(){
 		this.servant = new GnutellaServant();
-//		this.servant.setMessageReceiveListener(new MessageReceiveListener()) {
-//			@Override
-//			public void onReceivePingMessage(PingMessage ping) {
-//			}
-//			@Override
-//			public void onReceivePongMessage(PongMessage pong) {
-//				setStateMessage("pongを受信");
-//				setChanged();
-//				notifyObservers();
-//			}
-//			@Override
-//			public void onReceiveQueryMessage(QueryMessage query) {
-//				setStateMessage("queryを受信");
-//				setChanged();
-//				notifyObservers();
-//			}
-//			@Override
-//			public void onReceiveQueryHitMessage(QueryHitMessage queryHit) {
-//				setStateMessage("queryHitを受信");
-//				setChanged();
-//				notifyObservers();
-//			}
-//		}
+		this.servant.addMessageReceiveListener(new MessageReceiveListener()) {
+			@Override
+			public void onReceivePingMessage(PingMessage ping) {
+			}
+			@Override
+			public void onReceivePongMessage(PongMessage pong) {
+				setStateMessage("pongを受信");
+				setChanged();
+				notifyObservers();
+			}
+			@Override
+			public void onReceiveQueryMessage(QueryMessage query) {
+				setStateMessage("queryを受信");
+				setChanged();
+				notifyObservers();
+			}
+			@Override
+			public void onReceiveQueryHitMessage(QueryHitMessage queryHit) {
+				setStateMessage("queryHitを受信");
+				setChanged();
+				notifyObservers();
+			}
+		}
 	}
 	public void start() {
 		setStateMessage(String.format("ポート%dでサーバ起動開始", this.port));
 		setChanged();
 		notifyObservers();
-		this.servant.start(this.port);
+		this.servant.start(this.port, serverEventListener);
 	}
 
 	public void sendPing() {
 		setStateMessage("ping送信");
 		setChanged();
 		notifyObservers();
-		this.servant.sendPing();
+		this.servant.sendPing(messageReceiveListener);
 	}
 
 	public void sendQuery() {
 		setStateMessage("query送信");
 		setChanged();
 		notifyObservers();
-		this.servant.sendQuery(this.keyword, this.minimumSpeedKB);
+		this.servant.sendQuery(this.keyword, this.minimumSpeedKB, messageReceiveListener);
 	}
 
 	public void addFile() {
@@ -77,7 +86,7 @@ public class Model extends Observable{
 		setStateMessage("DownloadRequest送信");
 		setChanged();
 		notifyObservers();
-		this.servant.sendDownloadRequest(this.maps);
+		this.servant.sendDownloadRequest(this.maps, downloadWorkerEventListener);
 	}
 
 	public void setStateMessage(String stateMessage){
