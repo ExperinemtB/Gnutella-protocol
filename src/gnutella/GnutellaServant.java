@@ -258,26 +258,30 @@ public class GnutellaServant {
 	 * @param maps FileIndexをキー、QueryHitメッセージを値としたSimpleEntryのリスト
 	 */
 	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps) {
-		DownloadWorker worker = new DownloadWorker("testSaveFileName.jpg", server, maps);
-		worker.setDownloadWorkerEventListener(new DownloadWorkerEventListener() {
-			@Override
-			public void onThrowable(DownloadWorker eventSource, Throwable throwable) {
-				System.out.println("onThrowable");
-			}
-
-			@Override
-			public void onReceiveData(DownloadWorker eventSource, String fileName, long totalReceivedLength, long totalFileLength) {
-				System.out.println(String.format("%d", totalReceivedLength));
-			}
-
-			@Override
-			public void onComplete(DownloadWorker eventSource, int fileIndex, File file) {
-				System.out.println("onComplete!!");
-			}
-		});
-		this.maneger.executeOnThreadPool(worker);
+		sendDownloadRequest(maps,null);
 	}
 
+	/**
+	 * ファイルのダウンロードリクエストを送信する。<br>
+	 * Pushメッセージを送るべきか直接HTTP接続を行うかは自動的に判断される。<br>
+	 * 以前に受信したことのあるQueryHitメッセージと、それに含まれるResultSet中の目的のファイルのFileIndexをセットにして渡す。複数渡すと分割DLを行う。<br>
+	 * <br>
+	 * 例 <blockquote> {@code
+	 *   List<SimpleEntry<Integer, QueryHitMessage>> maps = new ArrayList<SimpleEntry<Integer, QueryHitMessage>>();
+	 *   maps.add(new SimpleEntry<Integer, QueryHitMessage>(0, queryHitMessage));
+	 *   servernt.sendDownloadRequest(maps);
+	 * } </blockquote>
+	 * @param maps FileIndexをキー、QueryHitメッセージを値としたSimpleEntryのリスト
+	 * @param downloadWorkerEventListener エラー発生時、ファイル転送時、ファイル転送完了時に呼ばれるイベントのハンドラ
+	 */
+	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps,DownloadWorkerEventListener downloadWorkerEventListener) {
+		DownloadWorker worker = new DownloadWorker("testSaveFileName.jpg", server, maps);
+		if(worker!=null){
+			worker.setDownloadWorkerEventListener(downloadWorkerEventListener);
+		}
+		this.maneger.executeOnThreadPool(worker);
+	}
+	
 	/**
 	 * 全ての動作を止める。
 	 * @deprecated 未実装
