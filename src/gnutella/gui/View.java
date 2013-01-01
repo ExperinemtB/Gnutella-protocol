@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentListener;
 
 public class View extends JFrame implements Observer{
 	private Model model;
@@ -75,10 +76,15 @@ public class View extends JFrame implements Observer{
 		addFileButton.setActionCommand("addFile");
 		downloadButton.addActionListener(actionListener);
 		downloadButton.setActionCommand("download");
-		portText.addActionListener(actionListener);
-		portText.setActionCommand("port");
-		fileNameText.addActionListener(actionListener);
-		fileNameText.setActionCommand("filename");
+	}
+
+	public void addToTextFieldDocumentListener(DocumentListener documentListener){
+		portText.getDocument().addDocumentListener(documentListener);
+	}
+
+	public void addEventListener(Controller controller){
+		addToButtonActionListener(controller.getButtonEventListener());
+		addToTextFieldDocumentListener(controller.getTextFieldDocumentActionListener());
 	}
 
 	@Override
@@ -88,13 +94,5 @@ public class View extends JFrame implements Observer{
 
 	private void setInformatin() {
 		outputArea.append(model.getStateMessage() + "\n");
-	}
-
-	public String getPort(){
-		return portText.getText();
-	}
-
-	public String getFilename(){
-		return fileNameText.getText();
 	}
 }

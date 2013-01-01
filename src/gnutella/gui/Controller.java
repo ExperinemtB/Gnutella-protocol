@@ -3,37 +3,72 @@ package gnutella.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class Controller implements ActionListener{
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+
+public class Controller{
 	private Model model;
-	private View view;
 
-	public Controller(Model model, View view){
+	public Controller(Model model){
 		this.model = model;
-		this.view = view;
 	}
-	public void actionPerformed(ActionEvent e){
-		String cmd = e.getActionCommand();
 
-		if(cmd.equals("start")){
-			model.start();
+	private final ActionListener buttonEventListener = new ActionListener(){
+		@Override
+		public void actionPerformed(ActionEvent e){
+			String cmd = e.getActionCommand();
+
+			if(cmd.equals("start")){
+				try{
+					int port = Integer.parseInt(model.getPortTextFieldString());
+					model.setPort(port);
+				}catch(NumberFormatException ex){
+				}
+				model.start();
+			}
+			if(cmd.equals("ping")){
+				model.sendPing();
+			}
+			if(cmd.equals("query")){
+				model.sendQuery();
+			}
+			if(cmd.equals("addFile")){
+				model.addFile();
+			}
+			if(cmd.equals("download")){
+				model.sendDownloadRequest();
+			}
 		}
-		if(cmd.equals("ping")){
-			model.sendPing();
+	};
+
+	public final DocumentListener textFieldDocumentActionListener = new DocumentListener(){
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			portTextFieldChanged(e.getDocument());
 		}
-		if(cmd.equals("query")){
-			model.sendQuery();
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			portTextFieldChanged(e.getDocument());
 		}
-		if(cmd.equals("addFile")){
-			model.addFile();
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			portTextFieldChanged(e.getDocument());
 		}
-		if(cmd.equals("download")){
-			model.sendDownloadRequest();
+	};
+
+	private void portTextFieldChanged(Document document) {
+		try {
+			model.setPortTextFieldString(document.getText(0, document.getLength()));
+		} catch (BadLocationException e1) {
 		}
-		if(cmd.equals("port")){
-			model.setPort(Integer.parseInt(view.getPort()));
-		}
-		if(cmd.equals("filename")){
-			model.setfileName(view.getFilename());
-		}
+	}
+
+	public ActionListener getButtonEventListener() {
+		return buttonEventListener;
+	}
+	public DocumentListener getTextFieldDocumentActionListener() {
+		return textFieldDocumentActionListener;
 	}
 }
