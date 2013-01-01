@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 
@@ -235,10 +236,18 @@ public class GnutellaServant {
 	 * ここで追加したフィアルが相手から受信可能となる
 	 * @param path 共有するファイルのパス
 	 * @return 追加に成功したかどうか
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
 	 */
-	public boolean addFile(String path) {
+	public boolean addFile(String path) throws IOException {
 		File localFile = new File(path);
-		boolean addSuccess = this.maneger.getSharedFileContainer().addFile(localFile);
+		boolean addSuccess = false;
+		try {
+			addSuccess = this.maneger.getSharedFileContainer().addFile(localFile);
+		} catch (NoSuchAlgorithmException e) {
+			addSuccess = false;
+			e.printStackTrace();
+		}
 		if (addSuccess) {
 			System.out.println("addedFile:" + localFile.getName());
 		}
@@ -258,7 +267,7 @@ public class GnutellaServant {
 	 * @param maps FileIndexをキー、QueryHitメッセージを値としたSimpleEntryのリスト
 	 */
 	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps) {
-		sendDownloadRequest(maps,null);
+		sendDownloadRequest(maps, null);
 	}
 
 	/**
@@ -274,14 +283,14 @@ public class GnutellaServant {
 	 * @param maps FileIndexをキー、QueryHitメッセージを値としたSimpleEntryのリスト
 	 * @param downloadWorkerEventListener エラー発生時、ファイル転送時、ファイル転送完了時に呼ばれるイベントのハンドラ
 	 */
-	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps,DownloadWorkerEventListener downloadWorkerEventListener) {
+	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps, DownloadWorkerEventListener downloadWorkerEventListener) {
 		DownloadWorker worker = new DownloadWorker("testSaveFileName.jpg", server, maps);
-		if(worker!=null){
+		if (worker != null) {
 			worker.setDownloadWorkerEventListener(downloadWorkerEventListener);
 		}
 		this.maneger.executeOnThreadPool(worker);
 	}
-	
+
 	/**
 	 * 全ての動作を止める。
 	 * @deprecated 未実装

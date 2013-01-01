@@ -36,8 +36,10 @@ public class QueryHitMessage extends Message {
 		for (int i = 0; i < this.numberofHits; i++) {
 			int resultSetFileIndex = bf.getInt();
 			int resultSetFileSize = bf.getInt();
+			byte[] fileMD5digest = new byte[16];
+			bf.get(fileMD5digest,0,16);
+			
 			ByteBuffer resultSetFileNameBuffer = ByteBuffer.allocateDirect(bf.capacity() - bf.position());
-
 			byte prevByte = -1;
 			while (bf.capacity() - bf.position() > 16) {
 				byte currentByte = bf.get();
@@ -53,7 +55,7 @@ public class QueryHitMessage extends Message {
 			byte[] fileNameBytes = new byte[resultSetFileNameBuffer.limit()];
 			resultSetFileNameBuffer.get(fileNameBytes);
 			String resultSetFileName = new String(fileNameBytes);
-			this.resultSet.add(new ResultSetContent(resultSetFileIndex, resultSetFileSize, resultSetFileName));
+			this.resultSet.add(new ResultSetContent(resultSetFileIndex, resultSetFileSize, resultSetFileName,fileMD5digest));
 		}
 		byte[] guidBytes = new byte[16];
 		bf.get(guidBytes);

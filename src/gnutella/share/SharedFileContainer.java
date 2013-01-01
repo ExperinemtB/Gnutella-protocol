@@ -1,6 +1,8 @@
 package gnutella.share;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class SharedFileContainer {
 		return this.totalFileSizeKb;
 	}
 
-	public Boolean addFile(File file) {
+	public Boolean addFile(File file) throws NoSuchAlgorithmException, IOException {
 		if (getFileByAbsolutePath(file.getAbsolutePath()) != null || !file.exists()) {
 			return false;
 		}

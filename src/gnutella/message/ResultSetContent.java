@@ -13,10 +13,12 @@ public class ResultSetContent {
 	public ResultSetContent(byte[] resultSetContentBytes) {
 	}
 
-	public ResultSetContent(int fileIndex, int fileSize, String fileName) {
+	public ResultSetContent(int fileIndex, int fileSize, String fileName,byte[] fileMD5digest) {
 		this.fileIndex = fileIndex;
 		this.fileSize = fileSize;
 		this.fileName = fileName;
+		this.fileMD5digest = new byte[fileMD5digest.length];
+		System.arraycopy(fileMD5digest, 0, this.fileMD5digest, 0, fileMD5digest.length);
 	}
 
 	public int getFileIndex() {
@@ -44,9 +46,10 @@ public class ResultSetContent {
 	}
 
 	public byte[] getBytes() {
-		ByteBuffer bf = ByteBuffer.allocateDirect(ResultSetContent.MIN_LENGTH + this.fileName.getBytes().length + 2);
+		ByteBuffer bf = ByteBuffer.allocateDirect(ResultSetContent.MIN_LENGTH + this.fileName.getBytes().length + 16 + 2);
 		bf.putInt(this.fileIndex);
 		bf.putInt(this.fileSize);
+		bf.put(this.fileMD5digest);
 		bf.put(this.fileName.getBytes());
 		bf.put(new byte[] { 0x00 });
 		bf.put(new byte[] { 0x00 });
@@ -60,5 +63,9 @@ public class ResultSetContent {
 	@Override
 	public String toString() {
 		return String.format("{fileIndex:%d fileSize:%d fileName:%s}", this.fileIndex, this.fileSize, this.fileName);
+	}
+
+	public byte[] getFileMD5digest() {
+		return fileMD5digest;
 	}
 }

@@ -178,7 +178,7 @@ public class MessageHundler {
 				try {
 					ResultSet resultSet = new ResultSet();
 					for (int i = 0; i < hitFiles.length; i++) {
-						resultSet.add(new ResultSetContent(hitFiles[i].getFileIndex(), (int) hitFiles[i].getOriginFile().length(), hitFiles[i].getFileName()));
+						resultSet.add(new ResultSetContent(hitFiles[i].getFileIndex(), (int) hitFiles[i].getOriginFile().length(), hitFiles[i].getFileName(),hitFiles[i].getFileMD5Digest()));
 					}
 					Header queryHitHeader = new Header(queryHeader.getGuid(), Header.QUERYHIT, (byte) (queryHeader.getHops() + 1), (byte) 1, QueryHitMessage.MIN_LENGTH + resultSet.getByteLength());
 

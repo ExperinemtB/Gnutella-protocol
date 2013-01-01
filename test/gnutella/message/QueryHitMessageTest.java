@@ -1,13 +1,17 @@
 package gnutella.message;
 
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -45,8 +49,10 @@ public class QueryHitMessageTest {
 		}
 		int speed = 50;
 		ResultSet resultSet = new ResultSet();
+		byte[] fileMD5Digist = new byte[16];
 		for (int i = 0; i < numberofHits; i++) {
-			ResultSetContent content = new ResultSetContent(i, i * 50, "testFile:" + String.valueOf(i));
+			(new Random(System.currentTimeMillis())).nextBytes(fileMD5Digist);
+			ResultSetContent content = new ResultSetContent(i, i * 50, "testFile:" + String.valueOf(i),fileMD5Digist);
 			resultSet.add(content);
 		}
 		GUID serventIdentifier = new GUID();
@@ -84,8 +90,10 @@ public class QueryHitMessageTest {
 		}
 		int speed = 50;
 		ResultSet resultSet = new ResultSet();
+		byte[] fileMD5Digist = new byte[16];
 		for (int i = 0; i < numberofHits; i++) {
-			ResultSetContent content = new ResultSetContent(i, i * 50, "testFile:" + String.valueOf(i));
+			(new Random(System.currentTimeMillis())).nextBytes(fileMD5Digist);
+			ResultSetContent content = new ResultSetContent(i, i * 50, "testFile:" + String.valueOf(i),fileMD5Digist);
 			resultSet.add(content);
 		}
 		GUID serventIdentifier = new GUID();
@@ -114,6 +122,7 @@ public class QueryHitMessageTest {
 			assertEquals(resultSet.getByFileIndex(i).getFileIndex(), queryHit.getResultSet().getByFileIndex(i).getFileIndex());
 			assertEquals(resultSet.getByFileIndex(i).getFileSize(), queryHit.getResultSet().getByFileIndex(i).getFileSize());
 			assertTrue(resultSet.getByFileIndex(i).getFileName().equals(queryHit.getResultSet().getByFileIndex(i).getFileName()));
+			assertThat(queryHit.getResultSet().getByFileIndex(i).getFileMD5digest(), is(equalTo(resultSet.getByFileIndex(i).getFileMD5digest())));
 		}
 		assertEquals(serventIdentifier, queryHit.getServentIdentifier());
 	}
