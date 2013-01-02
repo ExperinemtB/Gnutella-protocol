@@ -266,8 +266,8 @@ public class GnutellaServant {
 	 * } </blockquote>
 	 * @param maps FileIndexをキー、QueryHitメッセージを値としたSimpleEntryのリスト
 	 */
-	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps) {
-		sendDownloadRequest(maps, null);
+	public void sendDownloadRequest(String saveFileName,List<SimpleEntry<Integer, QueryHitMessage>> maps) {
+		sendDownloadRequest(saveFileName, maps, null);
 	}
 
 	/**
@@ -283,8 +283,8 @@ public class GnutellaServant {
 	 * @param maps FileIndexをキー、QueryHitメッセージを値としたSimpleEntryのリスト
 	 * @param downloadWorkerEventListener エラー発生時、ファイル転送時、ファイル転送完了時に呼ばれるイベントのハンドラ
 	 */
-	public void sendDownloadRequest(List<SimpleEntry<Integer, QueryHitMessage>> maps, DownloadWorkerEventListener downloadWorkerEventListener) {
-		DownloadWorker worker = new DownloadWorker("testSaveFileName.jpg", server, maps);
+	public void sendDownloadRequest(String saveFileName,List<SimpleEntry<Integer, QueryHitMessage>> maps, DownloadWorkerEventListener downloadWorkerEventListener) {
+		DownloadWorker worker = new DownloadWorker(saveFileName, server, maps);
 		if (worker != null) {
 			worker.setDownloadWorkerEventListener(downloadWorkerEventListener);
 		}

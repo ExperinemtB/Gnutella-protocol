@@ -223,7 +223,9 @@ public class Model extends Observable {
 			}
 		}
 		
-		this.servant.sendDownloadRequest(resultSetList, new DownloadWorkerEventListener() {
+		//とりあえずファイル名は適当に
+		//テキストボックスに入力させるとかした方がよさげ
+		this.servant.sendDownloadRequest(resultSetList.get(0).getValue().getResultSet().getByFileIndex(resultSetList.get(0).getKey()).getFileName(),resultSetList, new DownloadWorkerEventListener() {
 			@Override
 			public void onComplete(DownloadWorker eventSource, int fileIndex, File file) {
 				appendLogMessage(String.format("ダウンロード完了:%s",file.getAbsolutePath()));
