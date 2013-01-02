@@ -396,6 +396,10 @@ public class GnutellaServant {
 	public Host[] getNeighborHosts() {
 		return this.maneger.getHostContainer().getNeighborHosts();
 	}
+	
+	public Host[] getOnlineHosts(){
+		return this.maneger.getHostContainer().getOnlineHosts();
+	}
 
 	/**
 	 * 現在自身が共有可能しているファイルの一覧を取得する

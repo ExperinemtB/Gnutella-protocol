@@ -64,6 +64,14 @@ public class HostContainer {
 		return neighborList.toArray(new Host[] {});
 	}
 
+	/**
+	 * 自身が知っているネットワーク上のHost一覧を取得する
+	 * @return 自身が知っているネットワーク上のHost一覧
+	 */
+	public Host[] getOnlineHosts(){
+		return  this.hostMap.values().toArray(new Host[]{});
+	}
+	
 	public Host getHostByAddress(InetSocketAddress address) {
 		return hostMap.get(address);
 	}
