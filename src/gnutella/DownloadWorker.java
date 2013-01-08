@@ -92,7 +92,7 @@ public class DownloadWorker implements Runnable {
 					downloadState = DownloadStateType.COMPLETE;
 
 					if (downloadWorkerEventListener != null) {
-						downloadWorkerEventListener.onComplete(DownloadWorker.this, 0, file);
+						downloadWorkerEventListener.onComplete(DownloadWorker.this, 0, new File(saveFileName));
 					}
 					//ダウンロード用の接続を切断する
 					for (DownloadClient client : dlComleteClientList) {
@@ -191,7 +191,7 @@ public class DownloadWorker implements Runnable {
 		this.server = server;
 		this.queryHitMessageSet = queryHitMessageSet;
 		this.saveFileName = saveFileName;
-		this.splitCount = 10;
+		this.splitCount = 50;
 
 		this.measureThroughputCompleteHostList = new ArrayList<DownloadClient>();
 		this.dlQueue = new ConcurrentLinkedQueue<DownloadClient>();
@@ -295,6 +295,12 @@ public class DownloadWorker implements Runnable {
 			System.out.println("Already start Downloading");
 			return;
 		}
+		if (measureThroughputCompleteHostList.size() < 1) {
+			downloadState = DownloadStateType.ERROR;
+			System.out.println("No downloadable connection");
+			return;
+		}
+
 		this.downloadState = DownloadStateType.DOWNLOADING;
 
 		// DLを行う

@@ -272,7 +272,7 @@ public class HttpHundler {
 		sb.append("Content-type: application/binary\r\n");
 		sb.append(String.format("Content-length: %d\r\n", contentLength));
 		if (range != null) {
-			sb.append(String.format("Content-Range: bytes %d-%d1/%d\r\n", range.start, range.end, range.length));
+			sb.append(String.format("Content-Range: bytes %d-%d/%d\r\n", range.start, range.end, range.length));
 		}
 		sb.append("\r\n");
 		return sb.toString();
