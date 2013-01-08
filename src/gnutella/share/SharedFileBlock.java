@@ -5,7 +5,7 @@ import java.io.File;
 public class SharedFileBlock {
 	private File baseFile;
 	private int fileId;
-	private int length;
+	private long length;
 	private int position;
 	private byte[] data;
 
@@ -30,7 +30,7 @@ public class SharedFileBlock {
 		this.fileId = fileId;
 	}
 
-	public int getLength() {
+	public long getLength() {
 		return length;
 	}
 

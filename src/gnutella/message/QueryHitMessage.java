@@ -35,10 +35,10 @@ public class QueryHitMessage extends Message {
 		this.resultSet = new ResultSet();
 		for (int i = 0; i < this.numberofHits; i++) {
 			int resultSetFileIndex = bf.getInt();
-			int resultSetFileSize = bf.getInt();
+			long resultSetFileSize = (int) (bf.getInt() & 0xffffffffL);
 			byte[] fileMD5digest = new byte[16];
-			bf.get(fileMD5digest,0,16);
-			
+			bf.get(fileMD5digest, 0, 16);
+
 			ByteBuffer resultSetFileNameBuffer = ByteBuffer.allocateDirect(bf.capacity() - bf.position());
 			byte prevByte = -1;
 			while (bf.capacity() - bf.position() > 16) {
@@ -55,7 +55,7 @@ public class QueryHitMessage extends Message {
 			byte[] fileNameBytes = new byte[resultSetFileNameBuffer.limit()];
 			resultSetFileNameBuffer.get(fileNameBytes);
 			String resultSetFileName = new String(fileNameBytes);
-			this.resultSet.add(new ResultSetContent(resultSetFileIndex, resultSetFileSize, resultSetFileName,fileMD5digest));
+			this.resultSet.add(new ResultSetContent(resultSetFileIndex, resultSetFileSize, resultSetFileName, fileMD5digest));
 		}
 		byte[] guidBytes = new byte[16];
 		bf.get(guidBytes);
@@ -126,7 +126,9 @@ public class QueryHitMessage extends Message {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName()+ "{" + super.toString() + " " + String.format("numberofHits:%d port:%d ipAddress:%s speed:%d resultSet:%s serventIdentifier:%s", (int) this.numberofHits, (int) this.port, this.ipAddress.getHostAddress(), this.speed, this.resultSet.toString(), serventIdentifier.toString()) + "}";
+		return this.getClass().getSimpleName() + "{" + super.toString() + " "
+				+ String.format("numberofHits:%d port:%d ipAddress:%s speed:%d resultSet:%s serventIdentifier:%s", (int) this.numberofHits, (int) this.port, this.ipAddress.getHostAddress(), this.speed, this.resultSet.toString(), serventIdentifier.toString())
+				+ "}";
 	}
 
 }
