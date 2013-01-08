@@ -199,9 +199,9 @@ public class HttpHundler {
 			int length = 0, totalLength = 0;
 			while (contentLength > 0 && (length = is.read(byteBuffer)) != -1) {
 				fos.write(byteBuffer, 0, length);
-				
-				if(this.httpGetRequestResponseEventListener!=null){
-					this.httpGetRequestResponseEventListener.onReceiveData(byteBuffer);
+
+				if (this.httpGetRequestResponseEventListener != null) {
+					this.httpGetRequestResponseEventListener.onReceiveData(byteBuffer, length);
 				}
 				
 				byteBuffer = new byte[BUF_SIZE];

@@ -183,7 +183,7 @@ public class DownloadWorker implements Runnable {
 		}
 
 		@Override
-		public void onReceiveData(DownloadClient eventSource, int fileId, byte[] receiveData) {
+		public void onReceiveData(DownloadClient eventSource, int fileId, int receivedLength) {
 		}
 	};
 
@@ -225,7 +225,7 @@ public class DownloadWorker implements Runnable {
 					}
 
 					@Override
-					public void onReceiveData(byte[] receiveData) {
+					public void onReceiveData(byte[] receiveData, int length) {
 					}
 
 					@Override

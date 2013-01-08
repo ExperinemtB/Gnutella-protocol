@@ -83,9 +83,9 @@ public class DownloadClient implements Runnable {
 				}
 				
 				@Override
-				public void onReceiveData(byte[] receiveData) {
+				public void onReceiveData(byte[] receiveData, int length) {
 					if (downloadClientEventListener != null) {
-						downloadClientEventListener.onReceiveData(DownloadClient.this, fileId, receiveData);
+						downloadClientEventListener.onReceiveData(DownloadClient.this, fileId, length);
 					}
 				}
 				
