@@ -65,7 +65,7 @@ public class Controller {
 				}
 			}
 			else if (cmd.equals("download")) {
-				model.setSelectedMD5Digist((byte[])model.getSameMD5ResultSetContentList().keySet().toArray()[queryHitTableSelectedIndex]);
+				model.setSelectedMD5Digist(model.getSameMD5ResultSetContentList().keySet().toArray(new String[]{})[queryHitTableSelectedIndex]);
 				model.sendDownloadRequest();
 			}
 		}

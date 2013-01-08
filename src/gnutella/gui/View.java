@@ -170,7 +170,7 @@ public class View extends JFrame implements Observer {
 		this.queryHitTableModel.clearRow();
 
 		// MD5ハッシュごとにまとめて表示する
-		HashMap<byte[], ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentMap = model.getSameMD5ResultSetContentList();
+		HashMap<String, ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentMap = model.getSameMD5ResultSetContentList();
 		for (final ArrayList<SimpleEntry<QueryHitMessage, Integer>> contentList : sameMD5ResultSetContentMap.values()) {
 			final String[] sameMD5FileNames = new String[contentList.size()];
 			int i = 0;

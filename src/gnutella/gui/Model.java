@@ -14,6 +14,7 @@ import gnutella.message.QueryHitMessage;
 import gnutella.message.QueryMessage;
 import gnutella.message.ResultSet;
 import gnutella.message.ResultSetContent;
+import gnutella.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,14 +33,13 @@ public class Model extends Observable {
 	private int port;
 	private String keyword;
 	private int minimumSpeedKB;
-	
+
 	private GnutellaServant servant;
 	private Host[] onlineHosts;
 
 	private ArrayList<QueryHitMessage> receiveQueryHitMessageList;
-	private HashMap<byte[], ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentList;
-	private byte[] selectedMD5Digist;
-
+	private HashMap<String, ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentList;
+	private String selectedMD5Digist;
 
 	public Model() {
 		this.receiveQueryHitMessageList = new ArrayList<QueryHitMessage>();
@@ -174,17 +174,17 @@ public class Model extends Observable {
 				// TODO とりあえずtoStringだけど見にくい
 				appendLogMessage("QueryHit受信:" + queryHit.toString());
 				addReceiveQueryHitMessage(queryHit);
-				
+
 				// MD5ハッシュごとにまとめて表示する
-				HashMap<byte[],ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentMap = new HashMap<byte[],ArrayList<SimpleEntry<QueryHitMessage, Integer>>>();
+				HashMap<String, ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentMap = new HashMap<String, ArrayList<SimpleEntry<QueryHitMessage, Integer>>>();
 				for (QueryHitMessage queryHitMessage : receiveQueryHitMessageList) {
 					ResultSet resultSet = queryHitMessage.getResultSet();
 					for (int i = 0; i < queryHitMessage.getNumberofHits(); i++) {
 						ResultSetContent content = resultSet.getElementAt(i);
-						ArrayList<SimpleEntry<QueryHitMessage, Integer>> sameMD5QueryHitMessageList = sameMD5ResultSetContentMap.get(content.getFileMD5digest());
+						ArrayList<SimpleEntry<QueryHitMessage, Integer>> sameMD5QueryHitMessageList = sameMD5ResultSetContentMap.get(FileUtils.getDigestStringExpression(content.getFileMD5digest()));
 						if (sameMD5QueryHitMessageList == null) {
 							sameMD5QueryHitMessageList = new ArrayList<SimpleEntry<QueryHitMessage, Integer>>();
-							sameMD5ResultSetContentMap.put(content.getFileMD5digest(), sameMD5QueryHitMessageList);
+							sameMD5ResultSetContentMap.put(FileUtils.getDigestStringExpression(content.getFileMD5digest()), sameMD5QueryHitMessageList);
 						}
 						sameMD5QueryHitMessageList.add(new SimpleEntry<QueryHitMessage, Integer>(queryHitMessage, content.getFileIndex()));
 					}
@@ -212,23 +212,23 @@ public class Model extends Observable {
 		setChanged();
 		notifyObservers();
 
-		List<SimpleEntry<Integer, QueryHitMessage>> resultSetList = new ArrayList<SimpleEntry<Integer, QueryHitMessage>>(); 
+		List<SimpleEntry<Integer, QueryHitMessage>> resultSetList = new ArrayList<SimpleEntry<Integer, QueryHitMessage>>();
 		for (QueryHitMessage queryHitMessage : receiveQueryHitMessageList) {
 			ResultSet resultSet = queryHitMessage.getResultSet();
 			for (int i = 0; i < queryHitMessage.getNumberofHits(); i++) {
 				ResultSetContent content = resultSet.getElementAt(i);
-				if(Arrays.equals(content.getFileMD5digest(),this.selectedMD5Digist)){
+				if (FileUtils.getDigestStringExpression(content.getFileMD5digest()).equals(this.selectedMD5Digist)) {
 					resultSetList.add(new SimpleEntry<Integer, QueryHitMessage>(content.getFileIndex(), queryHitMessage));
 				}
 			}
 		}
-		
-		//とりあえずファイル名は適当に
-		//テキストボックスに入力させるとかした方がよさげ
-		this.servant.sendDownloadRequest(resultSetList.get(0).getValue().getResultSet().getByFileIndex(resultSetList.get(0).getKey()).getFileName(),resultSetList, new DownloadWorkerEventListener() {
+
+		// とりあえずファイル名は適当に
+		// テキストボックスに入力させるとかした方がよさげ
+		this.servant.sendDownloadRequest(resultSetList.get(0).getValue().getResultSet().getByFileIndex(resultSetList.get(0).getKey()).getFileName(), resultSetList, new DownloadWorkerEventListener() {
 			@Override
 			public void onComplete(DownloadWorker eventSource, int fileIndex, File file) {
-				appendLogMessage(String.format("ダウンロード完了:%s",file.getAbsolutePath()));
+				appendLogMessage(String.format("ダウンロード完了:%s", file.getAbsolutePath()));
 			}
 
 			@Override
@@ -238,7 +238,7 @@ public class Model extends Observable {
 
 			@Override
 			public void onReceiveData(DownloadWorker eventSource, String fileName, long totalReceivedLength, long totalFileLength) {
-				appendLogMessage(String.format("ダウンロード中(%s):%d/%d",fileName,totalReceivedLength,totalFileLength));
+				appendLogMessage(String.format("ダウンロード中(%s):%d/%d", fileName, totalReceivedLength, totalFileLength));
 			}
 		});
 	}
@@ -290,7 +290,6 @@ public class Model extends Observable {
 		this.receiveQueryHitMessageList.add(queryHit);
 	}
 
-	
 	private void clearReceiveQueryHitMessage() {
 		this.receiveQueryHitMessageList.clear();
 	}
@@ -299,21 +298,21 @@ public class Model extends Observable {
 		return receiveQueryHitMessageList;
 	}
 
-	public byte[] getSelectedMD5Digist() {
+	public String getSelectedMD5Digist() {
 		return selectedMD5Digist;
 	}
 
-	public void setSelectedMD5Digist(byte[] selectedMD5Digist) {
+	public void setSelectedMD5Digist(String selectedMD5Digist) {
 		this.selectedMD5Digist = selectedMD5Digist;
 	}
 
-	public HashMap<byte[], ArrayList<SimpleEntry<QueryHitMessage, Integer>>> getSameMD5ResultSetContentList() {
+	public HashMap<String, ArrayList<SimpleEntry<QueryHitMessage, Integer>>> getSameMD5ResultSetContentList() {
 		return sameMD5ResultSetContentList;
 	}
 
-	public void setSameMD5ResultSetContentList(HashMap<byte[], ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentMap) {
+	public void setSameMD5ResultSetContentList(HashMap<String, ArrayList<SimpleEntry<QueryHitMessage, Integer>>> sameMD5ResultSetContentMap) {
 		this.sameMD5ResultSetContentList = sameMD5ResultSetContentMap;
 		setChanged();
 		notifyObservers("sameMD5ResultSetContentList");
-	}	
+	}
 }
