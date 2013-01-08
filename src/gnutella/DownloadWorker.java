@@ -154,13 +154,13 @@ public class DownloadWorker implements Runnable {
 		}
 
 		@Override
-		public void onReceiveData(DownloadClient eventSource, int fileId, byte[] receiveData) {
-			if(downloadState==DownloadStateType.ERROR){
+		public void onReceiveData(DownloadClient eventSource, int fileId, int receivedLength) {
+			if (downloadState == DownloadStateType.ERROR) {
 				System.out.println("Download Error");
 				return;
 			}
-			
-			addTotalDownloadLength(receiveData.length);
+
+			addTotalDownloadLength(receivedLength);
 		}
 	};
 
@@ -183,7 +183,7 @@ public class DownloadWorker implements Runnable {
 		}
 
 		@Override
-		public void onReceiveData(DownloadClient eventSource, int fileId, byte[] receiveData) {
+		public void onReceiveData(DownloadClient eventSource, int fileId, int receivedLength) {
 		}
 	};
 
@@ -225,7 +225,7 @@ public class DownloadWorker implements Runnable {
 					}
 
 					@Override
-					public void onReceiveData(byte[] receiveData) {
+					public void onReceiveData(byte[] receiveData, int length) {
 					}
 
 					@Override

@@ -12,5 +12,5 @@ public interface HttpEventListener extends EventListener {
 
 	public void onThrowable(Throwable throwable);
 
-	public void onReceiveData(byte[] receiveData);
+	public void onReceiveData(byte[] receiveData,int length);
 }

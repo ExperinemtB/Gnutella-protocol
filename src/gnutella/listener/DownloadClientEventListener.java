@@ -10,5 +10,5 @@ public interface DownloadClientEventListener extends EventListener {
 
 	public void onThrowable(DownloadClient eventSource, Throwable throwable);
 
-	public void onReceiveData(DownloadClient eventSource, int fileId, byte[] receiveData);
+	public void onReceiveData(DownloadClient eventSource, int fileId, int receiveLength);
 }
