@@ -154,13 +154,13 @@ public class DownloadWorker implements Runnable {
 		}
 
 		@Override
-		public void onReceiveData(DownloadClient eventSource, int fileId, byte[] receiveData) {
-			if(downloadState==DownloadStateType.ERROR){
+		public void onReceiveData(DownloadClient eventSource, int fileId, int receivedLength) {
+			if (downloadState == DownloadStateType.ERROR) {
 				System.out.println("Download Error");
 				return;
 			}
-			
-			addTotalDownloadLength(receiveData.length);
+
+			addTotalDownloadLength(receivedLength);
 		}
 	};
 
@@ -232,7 +232,7 @@ public class DownloadWorker implements Runnable {
 					public void onHundleRequest(String requestLine, Host remoteHost) {
 						try {
 							ResultSetContent resultSetContent = queryHit.getResultSet().getByFileIndex(fileIndex);
-							int splitedSize = resultSetContent.getFileSize() / splitCount;
+							long splitedSize = resultSetContent.getFileSize() / splitCount;
 							DownloadClient client = new DownloadClient((DownloadConnection) remoteHost.getConnection(), fileIndex, resultSetContent.getFileName(), fFileId, splitedSize * fFileId, splitedSize);
 							client.setDownloadClientEventListener(measureThroughputEventListener);
 
@@ -259,7 +259,7 @@ public class DownloadWorker implements Runnable {
 				}
 			} else {
 				ResultSetContent resultSetContent = queryHit.getResultSet().getByFileIndex(fileIndex);
-				int splitedSize = resultSetContent.getFileSize() / splitCount;
+				long splitedSize = resultSetContent.getFileSize() / splitCount;
 
 				DownloadClient client = new DownloadClient(queryHit.getIpAddress(), queryHit.getPort(), fileIndex, queryHit.getResultSet().getByFileIndex(fileIndex).getFileName(), fileId, splitedSize * fileId, splitedSize);
 				client.setDownloadClientEventListener(measureThroughputEventListener);
