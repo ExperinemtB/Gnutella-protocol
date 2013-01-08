@@ -67,7 +67,6 @@ public class HttpHundler {
 		}
 	}
 
-	private final static int BUF_SIZE = 65535;
 	private HttpEventListener httpGetRequestResponseEventListener;
 	private Map<SimpleEntry<GUID, Integer>, HttpEventListener> httpGivRequestEventListener;
 
@@ -111,7 +110,6 @@ public class HttpHundler {
 					OutputStream os = remoteHost.getConnection().getOutputStream();
 
 					File file = sharedFile.getOriginFile();
-					byte[] buf = new byte[BUF_SIZE];
 					fis = new FileInputStream(file);
 					bis = new BufferedInputStream(fis);
 					int length = -1;
@@ -124,6 +122,8 @@ public class HttpHundler {
 					os.write(headerString.getBytes());
 
 					// Rangeパラメータに応じた量を返す
+					int bufsize = (int) Math.min(536870912, Math.max(65535, range.length / 10));
+					byte[] buf = new byte[bufsize];
 					bis.skip(offset);
 					while (leftLength > 0 && (length = bis.read(buf, 0, Math.min((int) leftLength, buf.length))) != -1) {
 						os.write(buf, 0, length);
@@ -192,7 +192,8 @@ public class HttpHundler {
 		long contentLength = Long.parseLong(httpFieldSet.get("Content-length"));
 		// ファイルを受け取る
 		try {
-			byte[] byteBuffer = new byte[BUF_SIZE];
+			int bufsize = (int) Math.min(536870912, Math.max(65535, contentLength / 10));
+			byte[] byteBuffer = new byte[bufsize];
 			InputStream is = remoteHost.getConnection().getInputStream();
 			FileOutputStream fos = new FileOutputStream(fileName);
 
@@ -203,8 +204,8 @@ public class HttpHundler {
 				if (this.httpGetRequestResponseEventListener != null) {
 					this.httpGetRequestResponseEventListener.onReceiveData(byteBuffer, length);
 				}
-				
-				byteBuffer = new byte[BUF_SIZE];
+
+				byteBuffer = new byte[bufsize];
 				totalLength += length;
 				contentLength -= length;
 			}
