@@ -125,7 +125,7 @@ public class HttpHundler {
 
 					// Rangeパラメータに応じた量を返す
 					bis.skip(offset);
-					while (leftLength > 0 && (length = bis.read(buf, 0, Math.min((int) leftLength, buf.length))) != -1) {
+					while (leftLength > 0 && (length = bis.read(buf, 0, BUF_SIZE)) != -1) {
 						os.write(buf, 0, length);
 						leftLength -= length;
 						sendLength += length;
@@ -272,7 +272,7 @@ public class HttpHundler {
 		sb.append("Content-type: application/binary\r\n");
 		sb.append(String.format("Content-length: %d\r\n", contentLength));
 		if (range != null) {
-			sb.append(String.format("Content-Range: bytes %d-%d1/%d\r\n", range.start, range.end, range.length));
+			sb.append(String.format("Content-Range: bytes %d-%d/%d\r\n", range.start, range.end, range.length));
 		}
 		sb.append("\r\n");
 		return sb.toString();
