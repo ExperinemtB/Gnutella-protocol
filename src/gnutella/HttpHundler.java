@@ -105,7 +105,7 @@ public class HttpHundler {
 			public void run() {
 				FileInputStream fis = null;
 				BufferedInputStream bis = null;
-				int sendLength = 0;
+				long sendLength = 0;
 				try {
 					SharedFile sharedFile = GnutellaManeger.getInstance().getSharedFileContainer().getSharedFileByFileIndex(fileIndex);
 					OutputStream os = remoteHost.getConnection().getOutputStream();
@@ -196,7 +196,8 @@ public class HttpHundler {
 			InputStream is = remoteHost.getConnection().getInputStream();
 			FileOutputStream fos = new FileOutputStream(fileName);
 
-			int length = 0, totalLength = 0;
+			int length = 0;
+			long totalLength = 0;
 			while (contentLength > 0 && (length = is.read(byteBuffer)) != -1) {
 				fos.write(byteBuffer, 0, length);
 

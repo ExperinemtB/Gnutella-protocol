@@ -35,7 +35,7 @@ public class QueryHitMessage extends Message {
 		this.resultSet = new ResultSet();
 		for (int i = 0; i < this.numberofHits; i++) {
 			int resultSetFileIndex = bf.getInt();
-			long resultSetFileSize = (int) (bf.getInt() & 0xffffffffL);
+			long resultSetFileSize =  bf.getInt() & 0xffffffffL;
 			byte[] fileMD5digest = new byte[16];
 			bf.get(fileMD5digest,0,16);
 			
