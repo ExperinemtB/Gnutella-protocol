@@ -27,6 +27,9 @@ public class DownloadWorker implements Runnable {
 		PREPARING, MEASURING_THROUGHPUT, DOWNLOADING, COMPLETE,ERROR
 	}
 
+	private final int MeasureThroughoutTime = 5000;
+	
+	
 	private DownloadStateType downloadState = DownloadStateType.PREPARING;
 
 	private final List<SimpleEntry<Integer, QueryHitMessage>> queryHitMessageSet;
@@ -34,6 +37,7 @@ public class DownloadWorker implements Runnable {
 
 	private String saveFileName;
 	private long fileSize;
+	private int minimumSpeedKb;
 
 	private int splitCount;
 	private List<DownloadClient> measureThroughputCompleteHostList;
@@ -198,7 +202,7 @@ public class DownloadWorker implements Runnable {
 		this.server = server;
 		this.queryHitMessageSet = queryHitMessageSet;
 		this.saveFileName = saveFileName;
-		this.splitCount = 10;
+		this.minimumSpeedKb = 1; 
 
 		this.measureThroughputCompleteHostList = new ArrayList<DownloadClient>();
 		this.dlQueue = new ConcurrentLinkedQueue<DownloadClient>();
@@ -239,7 +243,7 @@ public class DownloadWorker implements Runnable {
 					public void onHundleRequest(String requestLine, Host remoteHost) {
 						try {
 							ResultSetContent resultSetContent = queryHit.getResultSet().getByFileIndex(fileIndex);
-							long splitedSize = resultSetContent.getFileSize() / splitCount;
+							long splitedSize = Math.min(resultSetContent.getFileSize(),caluclateTestFileSize(minimumSpeedKb,MeasureThroughoutTime));
 							DownloadClient client = new DownloadClient((DownloadConnection) remoteHost.getConnection(), fileIndex, resultSetContent.getFileName(), fFileId, splitedSize * fFileId, splitedSize);
 							client.setDownloadClientEventListener(measureThroughputEventListener);
 
@@ -266,7 +270,7 @@ public class DownloadWorker implements Runnable {
 				}
 			} else {
 				ResultSetContent resultSetContent = queryHit.getResultSet().getByFileIndex(fileIndex);
-				long splitedSize = resultSetContent.getFileSize() / splitCount;
+				long splitedSize = Math.min(resultSetContent.getFileSize(),caluclateTestFileSize(this.minimumSpeedKb,this.MeasureThroughoutTime));
 
 				DownloadClient client = new DownloadClient(queryHit.getIpAddress(), queryHit.getPort(), fileIndex, queryHit.getResultSet().getByFileIndex(fileIndex).getFileName(), fileId, splitedSize * fileId, splitedSize);
 				client.setDownloadClientEventListener(measureThroughputEventListener);
@@ -277,13 +281,13 @@ public class DownloadWorker implements Runnable {
 			fileId++;
 		}
 
-		// スループットの計測は5秒以内
+		// スループットの計測
 		GnutellaManeger.getInstance().executeOnThreadPool(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(5000);
+					Thread.sleep(MeasureThroughoutTime);
 				} catch (Exception ex) {
 
 				}
@@ -355,5 +359,9 @@ public class DownloadWorker implements Runnable {
 		if (this.downloadWorkerEventListener != null) {
 			this.downloadWorkerEventListener.onReceiveData(DownloadWorker.this, saveFileName, totalDownloadLength, fileSize);
 		}
+	}
+	
+	private long caluclateTestFileSize(int needSppedInKb,int measureThroughoutTime){
+		return (long)needSppedInKb*measureThroughoutTime * 1024L;
 	}
 }
