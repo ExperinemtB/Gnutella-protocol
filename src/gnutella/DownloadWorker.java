@@ -58,51 +58,58 @@ public class DownloadWorker implements Runnable {
 			dlComleteClientList.add(eventSource);
 			
 			if (dlQueue.isEmpty()) {
-				// ファイルのマージを行う
-				BufferedOutputStream outStream = null;
-				BufferedInputStream is = null;
-				try {
-					SharedFileBlock[] sortedArray = new SharedFileBlock[dlComleteList.entrySet().size()];
-					for (Entry<Integer, SharedFileBlock> set : dlComleteList.entrySet()) {
-						sortedArray[set.getKey()] = set.getValue();
-					}
-					outStream = new BufferedOutputStream(new FileOutputStream(saveFileName));
-					for (SharedFileBlock fileBlock : sortedArray) {
-						File fileRead = fileBlock.getBaseFile();
-						is = new BufferedInputStream(new FileInputStream(fileRead));
-						System.out.println(String.format("FileMerging:%s", fileRead));
-
-						int readData;
-						while ((readData = is.read()) != -1) {
-							outStream.write(readData);
-						}
-						is.close();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
+				File resultFile = new File(saveFileName);
+				// 分割DLを行った場合はファイルのマージを行う
+				if (dlQueue.size() > 1) {
+					BufferedOutputStream outStream = null;
+					BufferedInputStream is = null;
 					try {
-						is.close();
-						outStream.flush();
-						outStream.close();
-					} catch (Exception ex) {
-						ex.printStackTrace();
-					}
+						SharedFileBlock[] sortedArray = new SharedFileBlock[dlComleteList.entrySet().size()];
+						for (Entry<Integer, SharedFileBlock> set : dlComleteList.entrySet()) {
+							sortedArray[set.getKey()] = set.getValue();
+						}
+						outStream = new BufferedOutputStream(new FileOutputStream(resultFile));
+						for (SharedFileBlock fileBlock : sortedArray) {
+							File fileRead = fileBlock.getBaseFile();
+							is = new BufferedInputStream(new FileInputStream(fileRead));
+							System.out.println(String.format("FileMerging:%s", fileRead));
 
-					downloadState = DownloadStateType.COMPLETE;
-
-					if (downloadWorkerEventListener != null) {
-						downloadWorkerEventListener.onComplete(DownloadWorker.this, 0, file);
-					}
-					//ダウンロード用の接続を切断する
-					for (DownloadClient client : dlComleteClientList) {
+							int readData;
+							while ((readData = is.read()) != -1) {
+								outStream.write(readData);
+							}
+							is.close();
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
 						try {
-							client.closeConnection();
+							is.close();
+							outStream.flush();
+							outStream.close();
+							//分割されたファイルを削除
+							for (Entry<Integer, SharedFileBlock> set : dlComleteList.entrySet()) {
+								set.getValue().getBaseFile().delete();
+							}
 						} catch (Exception ex) {
 							ex.printStackTrace();
 						}
 					}
-					
+				} else {
+					file.renameTo(resultFile);
+				}
+				
+				downloadState = DownloadStateType.COMPLETE;
+				if (downloadWorkerEventListener != null) {
+					downloadWorkerEventListener.onComplete(DownloadWorker.this, 0, file);
+				}
+				// ダウンロード用の接続を切断する
+				for (DownloadClient client : dlComleteClientList) {
+					try {
+						client.closeConnection();
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
 				}
 			}
 		}
