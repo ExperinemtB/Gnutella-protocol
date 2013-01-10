@@ -72,6 +72,9 @@ public class ConnectionDataReceiver implements Runnable {
 				}
 
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
+				
+				//残りのバッファ部分もパースできないか確認する
+				parseData();
 			}
 		} else if (connectionState == ConnectionStateType.CONNECTING) {
 			if (this.receiveByteQueue.size() >= GnutellaConnection.GNUTELLA_OK_LENGTH) {
@@ -89,6 +92,9 @@ public class ConnectionDataReceiver implements Runnable {
 				}
 
 				this.receiveByteQueue = this.receiveByteQueue.subList(readLength, this.receiveByteQueue.size());
+
+				//残りのバッファ部分もパースできないか確認する
+				parseData();
 			}
 		} else if (connectionState == ConnectionStateType.CONNECT) {
 
@@ -128,7 +134,8 @@ public class ConnectionDataReceiver implements Runnable {
 				if (accepted) {
 					GnutellaManeger.getInstance().getRoutingTable().add(remoteHost, message);
 				}
-
+				//残りのバッファ部分もパースできないか確認する
+				parseData();
 			}
 		}
 	}
