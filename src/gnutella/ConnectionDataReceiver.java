@@ -151,16 +151,15 @@ public class ConnectionDataReceiver implements Runnable {
 		try {
 			receiveData();
 		} catch (IOException e) {
-			// 接続が切れた時を想定しているのであえて無視
+			e.printStackTrace();
 		} catch (NullPointerException e) {
-			// 接続が切れた時を想定しているのであえて無視
+			e.printStackTrace();
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			// 想定していない例外のためイベント発火
 			ConnectionEventListener connectionEventListener = maneger.getConnectionEventListener();
 			if (connectionEventListener != null) {
 				connectionEventListener.onThrowable(ex);
-			} else {
-				ex.printStackTrace();
 			}
 		}
 		Host deletedHost = maneger.getHostContainer().removeByAddress(remoteHost.getAddress());

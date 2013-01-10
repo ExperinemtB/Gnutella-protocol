@@ -289,7 +289,7 @@ public class DownloadWorker implements Runnable {
 				try {
 					Thread.sleep(MeasureThroughoutTime);
 				} catch (Exception ex) {
-
+					ex.printStackTrace();
 				}
 
 				doDownload();
@@ -298,6 +298,8 @@ public class DownloadWorker implements Runnable {
 	}
 
 	private synchronized void doDownload() {
+		System.out.println("doDownload from "+String.valueOf(measureThroughputCompleteHostList.size())+" node");
+		
 		if(downloadState==DownloadStateType.ERROR){
 			System.out.println("Download Error");
 			return;
