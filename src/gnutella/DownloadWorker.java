@@ -64,7 +64,7 @@ public class DownloadWorker implements Runnable {
 			if (dlQueue.isEmpty()) {
 				File resultFile = new File(saveFileName);
 				// 分割DLを行った場合はファイルのマージを行う
-				if (dlQueue.size() > 1) {
+				if (measureThroughputCompleteHostList.size() > 1) {
 					BufferedOutputStream outStream = null;
 					BufferedInputStream is = null;
 					try {
@@ -281,7 +281,7 @@ public class DownloadWorker implements Runnable {
 			fileId++;
 		}
 
-		// スループットの計測
+		// スループットの計測待ち
 		GnutellaManeger.getInstance().executeOnThreadPool(new Runnable() {
 
 			@Override
