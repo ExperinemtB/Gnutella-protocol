@@ -46,9 +46,9 @@ public class ResultSetContent {
 	}
 
 	public byte[] getBytes() {
-		ByteBuffer bf = ByteBuffer.allocateDirect(ResultSetContent.MIN_LENGTH + this.fileName.getBytes().length + 16 + 2);
+		ByteBuffer bf = ByteBuffer.allocateDirect(ResultSetContent.MIN_LENGTH + this.fileName.getBytes().length + 20 + 2);
 		bf.putInt(this.fileIndex);
-		bf.putInt((int) (this.fileSize & 0xffffffffL));
+		bf.putLong(this.fileSize);
 		bf.put(this.fileMD5digest);
 		bf.put(this.fileName.getBytes());
 		bf.put(new byte[] { 0x00 });
