@@ -63,7 +63,7 @@ public class GnutellaServant {
 					if (cmd[0].equals("start")) {
 						servernt.start(Integer.parseInt(cmd[1]));
 					} else if (cmd[0].equals("connect")) {
-						servernt.connect(InetAddress.getLocalHost(), Integer.parseInt(cmd[1]));
+						servernt.connect(InetAddress.getByName(cmd[1]), Integer.parseInt(cmd[2]));
 					} else if (cmd[0].equals("sendPing")) {
 						servernt.sendPing();
 					} else if (cmd[0].equals("addFile")) {
