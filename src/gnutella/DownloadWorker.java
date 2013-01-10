@@ -244,7 +244,7 @@ public class DownloadWorker implements Runnable {
 						try {
 							ResultSetContent resultSetContent = queryHit.getResultSet().getByFileIndex(fileIndex);
 							long splitedSize = Math.min(resultSetContent.getFileSize(),caluclateTestFileSize(minimumSpeedKb,MeasureThroughoutTime));
-							DownloadClient client = new DownloadClient((DownloadConnection) remoteHost.getConnection(), fileIndex, resultSetContent.getFileName(), fFileId, splitedSize * fFileId, splitedSize);
+							DownloadClient client = new DownloadClient((DownloadConnection) remoteHost.getConnection(), fileIndex,"measure_"+ resultSetContent.getFileName(), fFileId, splitedSize * fFileId, splitedSize);
 							client.setDownloadClientEventListener(measureThroughputEventListener);
 
 							// まずはスループットを計測する
@@ -272,7 +272,7 @@ public class DownloadWorker implements Runnable {
 				ResultSetContent resultSetContent = queryHit.getResultSet().getByFileIndex(fileIndex);
 				long splitedSize = Math.min(resultSetContent.getFileSize(),caluclateTestFileSize(this.minimumSpeedKb,this.MeasureThroughoutTime));
 
-				DownloadClient client = new DownloadClient(queryHit.getIpAddress(), queryHit.getPort(), fileIndex, queryHit.getResultSet().getByFileIndex(fileIndex).getFileName(), fileId, splitedSize * fileId, splitedSize);
+				DownloadClient client = new DownloadClient(queryHit.getIpAddress(), queryHit.getPort(), fileIndex, "measure_"+queryHit.getResultSet().getByFileIndex(fileIndex).getFileName(), fileId, splitedSize * fileId, splitedSize);
 				client.setDownloadClientEventListener(measureThroughputEventListener);
 
 				// まずはスループットを計測する
